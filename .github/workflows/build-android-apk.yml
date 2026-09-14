@@ -32,6 +32,20 @@ jobs:
           sed -i '/<manifest /a\    <uses-permission android:name="android.permission.CAMERA" />' android/app/src/main/AndroidManifest.xml
           cat android/app/src/main/AndroidManifest.xml
 
+      - name: Silence R8 for ML Kit script recognizers we don't use
+        run: |
+          cat >> android/app/proguard-rules.pro <<'EOF'
+          # google_mlkit_text_recognition's generic initializer references the
+          # per-script recognizer option classes for every script, but only the
+          # one(s) actually depended on are bundled. This app only uses
+          # TextRecognitionScript.latin, so tell R8 the rest are fine to be missing.
+          -dontwarn com.google.mlkit.vision.text.chinese.**
+          -dontwarn com.google.mlkit.vision.text.devanagari.**
+          -dontwarn com.google.mlkit.vision.text.japanese.**
+          -dontwarn com.google.mlkit.vision.text.korean.**
+          EOF
+          cat android/app/proguard-rules.pro
+
       - run: flutter pub get
 
       - run: flutter build apk --release
