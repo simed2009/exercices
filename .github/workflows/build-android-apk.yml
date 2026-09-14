@@ -3,6 +3,9 @@ name: Build Android APK (camscanner_clone)
 on:
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -55,3 +58,17 @@ jobs:
           name: camscanner-clone-apk
           path: camscanner_clone/build/app/outputs/flutter-apk/app-release.apk
           if-no-files-found: error
+
+      # Workflow artifacts are stored on Azure Blob Storage, which this
+      # sandbox's egress proxy cannot reach to download from. Also publish
+      # the APK as a GitHub Release asset (served from
+      # objects.githubusercontent.com, which the proxy does allow) so it
+      # can actually be fetched from here.
+      - uses: softprops/action-gh-release@v2
+        with:
+          tag_name: apk-run-${{ github.run_number }}
+          name: camscanner_clone APK (run ${{ github.run_number }})
+          files: camscanner_clone/build/app/outputs/flutter-apk/app-release.apk
+          prerelease: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
