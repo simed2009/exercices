@@ -1,0 +1,49 @@
+name: camscanner_clone
+description: >
+  MVP لتطبيق مسح مستندات شبيه بـ CamScanner: كشف حواف + تصحيح منظور عبر
+  الماسح الأصلي (ML Kit / VisionKit)، تحسين صورة، تصدير PDF، ومكتبة مستندات محلية.
+publish_to: "none"
+version: 0.1.0
+
+environment:
+  sdk: ">=3.3.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+  cupertino_icons: ^1.0.8
+
+  # كشف الحواف + تصحيح المنظور عبر الماسح الأصلي
+  # (Android: ML Kit Document Scanner API, iOS: VisionKit VNDocumentCameraViewController)
+  flutter_doc_scanner: ^0.0.16
+
+  # معالجة الصور بلغة Dart خالصة (grayscale / black&white / تحسين) بدون تبعيات أصلية إضافية
+  image: ^4.2.0
+
+  # توليد ملفات PDF من صفحات الصور
+  pdf: ^3.11.1
+
+  # مسارات تخزين خاصة بالتطبيق على الجهاز
+  path_provider: ^2.1.4
+  path: ^1.9.0
+
+  # إدارة الحالة بين شاشة المكتبة وشاشة عرض المستند
+  provider: ^6.1.2
+
+  # معرّفات فريدة للمستندات
+  uuid: ^4.5.1
+
+  # مشاركة/تصدير ملف الـ PDF الناتج
+  share_plus: ^10.1.2
+
+  intl: ^0.19.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+
+flutter:
+  uses-material-design: true
