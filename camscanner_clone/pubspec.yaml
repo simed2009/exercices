@@ -42,7 +42,7 @@ dependencies:
   # مشاركة/تصدير ملف الـ PDF الناتج
   share_plus: ^10.1.2
 
-  intl: ^0.19.0
+  intl: ^0.20.3
 
 dev_dependencies:
   flutter_test:
