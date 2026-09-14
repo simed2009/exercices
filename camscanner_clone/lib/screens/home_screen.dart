@@ -16,6 +16,23 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   bool _scanning = false;
+  final TextEditingController _searchController = TextEditingController();
+  String _query = '';
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  List<ScannedDocument> _filter(List<ScannedDocument> documents) {
+    final query = _query.trim().toLowerCase();
+    if (query.isEmpty) return documents;
+    return documents.where((d) {
+      return d.title.toLowerCase().contains(query) ||
+          d.searchableText.toLowerCase().contains(query);
+    }).toList();
+  }
 
   Future<void> _startScan() async {
     setState(() => _scanning = true);
@@ -88,9 +105,41 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final store = context.watch<DocumentStore>();
+    final filtered = _filter(store.documents);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('مستنداتي')),
+      appBar: AppBar(
+        title: const Text('مستنداتي'),
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(56),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+            child: TextField(
+              controller: _searchController,
+              onChanged: (v) => setState(() => _query = v),
+              decoration: InputDecoration(
+                hintText: 'ابحث بالعنوان أو بالنص المستخرَج (OCR)...',
+                prefixIcon: const Icon(Icons.search),
+                suffixIcon: _query.isEmpty
+                    ? null
+                    : IconButton(
+                        icon: const Icon(Icons.clear),
+                        onPressed: () => setState(() {
+                          _searchController.clear();
+                          _query = '';
+                        }),
+                      ),
+                filled: true,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide.none,
+                ),
+                isDense: true,
+              ),
+            ),
+          ),
+        ),
+      ),
       body: store.isLoading
           ? const Center(child: CircularProgressIndicator())
           : store.documents.isEmpty
@@ -103,28 +152,30 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ),
                 )
-              : GridView.builder(
-                  padding: const EdgeInsets.all(12),
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    childAspectRatio: 0.72,
-                    crossAxisSpacing: 12,
-                    mainAxisSpacing: 12,
-                  ),
-                  itemCount: store.documents.length,
-                  itemBuilder: (context, i) {
-                    final document = store.documents[i];
-                    return DocumentGridTile(
-                      document: document,
-                      onTap: () => Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (_) => DocumentViewerScreen(documentId: document.id),
-                        ),
+              : filtered.isEmpty
+                  ? const Center(child: Text('لا نتائج مطابقة للبحث.'))
+                  : GridView.builder(
+                      padding: const EdgeInsets.all(12),
+                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 2,
+                        childAspectRatio: 0.72,
+                        crossAxisSpacing: 12,
+                        mainAxisSpacing: 12,
                       ),
-                      onLongPress: () => _showDocumentActions(document),
-                    );
-                  },
-                ),
+                      itemCount: filtered.length,
+                      itemBuilder: (context, i) {
+                        final document = filtered[i];
+                        return DocumentGridTile(
+                          document: document,
+                          onTap: () => Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) => DocumentViewerScreen(documentId: document.id),
+                            ),
+                          ),
+                          onLongPress: () => _showDocumentActions(document),
+                        );
+                      },
+                    ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _scanning ? null : _startScan,
         icon: _scanning

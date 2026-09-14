@@ -97,6 +97,17 @@ class DocumentStore extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// يحفظ نص OCR مستخرَجاً لصفحة بعينها (مفتاح النص هو مسار ملف تلك الصفحة).
+  Future<void> setPageText(String id, String pagePath, String text) async {
+    final index = _documents.indexWhere((d) => d.id == id);
+    if (index == -1) return;
+    final newPageText = Map<String, String>.from(_documents[index].pageText)
+      ..[pagePath] = text;
+    _documents[index] = _documents[index].copyWith(pageText: newPageText);
+    await _persistIndex();
+    notifyListeners();
+  }
+
   Future<void> deleteDocument(String id) async {
     final index = _documents.indexWhere((d) => d.id == id);
     if (index == -1) return;

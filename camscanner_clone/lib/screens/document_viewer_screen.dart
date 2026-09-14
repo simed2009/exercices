@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:path/path.dart' as p;
 import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
@@ -8,6 +9,7 @@ import 'package:share_plus/share_plus.dart';
 import '../models/scanned_document.dart';
 import '../services/document_store.dart';
 import '../services/image_enhancer.dart';
+import '../services/ocr_service.dart';
 
 class DocumentViewerScreen extends StatefulWidget {
   const DocumentViewerScreen({super.key, required this.documentId});
@@ -113,6 +115,90 @@ class _DocumentViewerScreenState extends State<DocumentViewerScreen> {
     }
   }
 
+  Future<void> _runOcr(ScannedDocument document) async {
+    final currentPath = document.pagePaths[_currentPage];
+    final cached = document.pageText[currentPath];
+    if (cached != null) {
+      _showOcrResult(cached);
+      return;
+    }
+
+    setState(() => _busy = true);
+    try {
+      final text = await OcrService.recognizeText(currentPath);
+      if (!mounted) return;
+      await context.read<DocumentStore>().setPageText(document.id, currentPath, text);
+      _showOcrResult(text);
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('تعذّر استخراج النص من هذه الصفحة.')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  void _showOcrResult(String text) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) {
+        return DraggableScrollableSheet(
+          initialChildSize: 0.6,
+          expand: false,
+          builder: (context, scrollController) {
+            return Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Row(
+                    children: [
+                      const Expanded(
+                        child: Text(
+                          'النص المستخرج',
+                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                        ),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.copy_outlined),
+                        tooltip: 'نسخ',
+                        onPressed: text.isEmpty
+                            ? null
+                            : () {
+                                Clipboard.setData(ClipboardData(text: text));
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('تم نسخ النص')),
+                                );
+                              },
+                      ),
+                    ],
+                  ),
+                  const Divider(),
+                  const Text(
+                    'يدعم هذا الإصدار النصوص اللاتينية فقط (لا يدعم العربية بعد).',
+                    style: TextStyle(fontSize: 12, color: Colors.grey),
+                  ),
+                  const SizedBox(height: 8),
+                  Expanded(
+                    child: SingleChildScrollView(
+                      controller: scrollController,
+                      child: SelectableText(
+                        text.isEmpty ? 'لم يُعثر على نص في هذه الصفحة.' : text,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
   Future<void> _exportAndShare(ScannedDocument document) async {
     setState(() => _busy = true);
     try {
@@ -139,6 +225,11 @@ class _DocumentViewerScreenState extends State<DocumentViewerScreen> {
       appBar: AppBar(
         title: Text(document.title),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.text_snippet_outlined),
+            tooltip: 'استخراج النص (OCR)',
+            onPressed: _busy ? null : () => _runOcr(document),
+          ),
           IconButton(icon: const Icon(Icons.edit_outlined), onPressed: () => _rename(document)),
           IconButton(
             icon: const Icon(Icons.delete_outline),
