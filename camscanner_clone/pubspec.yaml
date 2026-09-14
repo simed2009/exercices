@@ -40,7 +40,9 @@ dependencies:
   uuid: ^4.5.1
 
   # مشاركة/تصدير ملف الـ PDF الناتج
-  share_plus: ^10.1.2
+  # ملاحظة: نُحدد ^13.0.0 لأن SharePlus.instance.share(ShareParams(...)) -
+  # الواجهة المستخدَمة في الكود - لم تكن موجودة بعد في سلسلة الإصدار 10.x.
+  share_plus: ^13.3.0
 
   intl: ^0.20.3
 
