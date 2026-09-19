@@ -1,0 +1,1282 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>محاكي المسار الحركي لخط الأرقام | TraceMotion Engine</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Tajawal:wght@500;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f4f6fa;
+    --card: #ffffff;
+    --border: #e2e8f0;
+    --ink-main: #0f172a;
+    --muted: #64748b;
+    --primary: #2563eb;
+    --primary-light: #dbeafe;
+
+    --paper-line: #cbd5e1;
+    --baseline: #94a3b8;
+    --margin-line: #fca5a5;
+
+    --faint-guide: #e2e8f0;
+    --faint-stroke: #94a3b8;
+    --ink-drawn: #1d4ed8;
+    --user-ink: #16a34a;
+
+    --pen-tip: #f59e0b;
+    --pen-ring: #dc2626;
+    --start-dot: #10b981;
+    --end-dot: #ef4444;
+    --arrow-color: #0f172a;
+    --shadow: 0 10px 30px -5px rgba(15, 23, 42, 0.08);
+  }
+
+  [data-theme="dark"] {
+    --bg: #090d16;
+    --card: #131b2e;
+    --border: #222f49;
+    --ink-main: #f1f5f9;
+    --muted: #94a3b8;
+    --primary: #38bdf8;
+    --primary-light: #0c2d48;
+
+    --paper-line: #1e293b;
+    --baseline: #334155;
+    --margin-line: #7f1d1d;
+
+    --faint-guide: #1e293b;
+    --faint-stroke: #475569;
+    --ink-drawn: #38bdf8;
+    --user-ink: #4ade80;
+
+    --pen-tip: #fbbf24;
+    --pen-ring: #f87171;
+    --arrow-color: #e2e8f0;
+    --shadow: 0 14px 34px -8px rgba(0, 0, 0, 0.6);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background-color: var(--bg);
+    color: var(--ink-main);
+    font-family: 'Tajawal', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px 16px 40px;
+    transition: background-color .3s, color .3s;
+  }
+
+  .wrap {
+    width: 100%;
+    max-width: 500px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+  }
+
+  header {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .header-titles h1 { font-size: 20px; font-weight: 800; line-height: 1.25; }
+  .header-titles p { font-size: 12.5px; color: var(--muted); margin-top: 3px; }
+  .header-btns { display: flex; gap: 8px; }
+  .tool-btn {
+    background: var(--card);
+    border: 1.5px solid var(--border);
+    color: var(--ink-main);
+    border-radius: 12px;
+    width: 40px;
+    height: 40px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 17px;
+    transition: all .2s;
+  }
+  .tool-btn:hover { border-color: var(--primary); transform: translateY(-2px); }
+  .tool-btn.is-open { background: var(--primary); color: #fff; border-color: var(--primary); }
+
+  .digits-row {
+    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(10, 1fr);
+    gap: 4px;
+    background: var(--card);
+    border: 1.5px solid var(--border);
+    border-radius: 16px;
+    padding: 6px;
+    box-shadow: var(--shadow);
+  }
+  .digit-btn {
+    height: 48px;
+    border-radius: 10px;
+    border: none;
+    background: transparent;
+    color: var(--ink-main);
+    font-family: 'Caveat', cursive;
+    font-size: 26px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all .16s ease;
+  }
+  .digit-btn:hover { background: var(--primary-light); color: var(--primary); }
+  .digit-btn.active {
+    background: var(--primary);
+    color: #ffffff;
+    box-shadow: 0 4px 10px rgba(37, 99, 235, 0.3);
+    transform: scale(1.05);
+  }
+
+  /* ============ لوحة الإعدادات (مصفوفة الأوضاع القابلة للتخصيص) ============ */
+  .settings-panel {
+    width: 100%;
+    background: var(--card);
+    border: 1.5px solid var(--border);
+    border-radius: 16px;
+    padding: 12px 14px;
+    box-shadow: var(--shadow);
+    display: none;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .settings-panel.open { display: flex; }
+  .setting-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .setting-row label { font-size: 12.5px; font-weight: 700; color: var(--muted); white-space: nowrap; }
+  .seg-group {
+    display: flex;
+    background: var(--bg);
+    border-radius: 10px;
+    padding: 3px;
+    gap: 3px;
+    flex: 1 1 auto;
+    min-width: 160px;
+  }
+  .seg-btn {
+    flex: 1;
+    border: none;
+    background: transparent;
+    color: var(--ink-main);
+    font-family: 'Tajawal', sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    padding: 7px 6px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all .15s;
+    white-space: nowrap;
+  }
+  .seg-btn.active { background: var(--primary); color: #fff; }
+  .settings-divider { border-top: 1px dashed var(--border); margin: 2px 0; }
+
+  .paper-card {
+    width: 100%;
+    background: var(--card);
+    border: 1.5px solid var(--border);
+    border-radius: 22px;
+    padding: 16px;
+    box-shadow: var(--shadow);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+  }
+
+  .stage-box {
+    position: relative;
+    width: 100%;
+    max-width: 330px;
+    aspect-ratio: 1 / 1.2;
+    background: var(--card);
+    border-radius: 16px;
+    border: 1.5px solid var(--border);
+    overflow: hidden;
+    touch-action: none;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  .stage-box svg { width: 100%; height: 100%; display: block; touch-action: none; }
+
+  .stage-box.stage-warn { animation: shakeX .4s ease; border-color: var(--end-dot); }
+  @keyframes shakeX {
+    0%, 100% { transform: translateX(0); }
+    20% { transform: translateX(-4px); }
+    40% { transform: translateX(4px); }
+    60% { transform: translateX(-3px); }
+    80% { transform: translateX(3px); }
+  }
+
+  .notebook-line { stroke: var(--paper-line); stroke-width: 1.5; }
+  .notebook-midline { stroke: var(--paper-line); stroke-width: 1.5; stroke-dasharray: 5, 5; }
+  .notebook-baseline { stroke: var(--baseline); stroke-width: 2; }
+  .notebook-margin { stroke: var(--margin-line); stroke-width: 1.5; opacity: 0.6; }
+
+  .faint-path {
+    fill: none;
+    stroke: var(--faint-guide);
+    stroke-width: 22;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    transition: opacity .2s, stroke-width .2s;
+  }
+  .faint-border {
+    fill: none;
+    stroke: var(--faint-stroke);
+    stroke-width: 1.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-dasharray: 4, 4;
+    opacity: 0.6;
+    transition: opacity .2s;
+  }
+
+  /* حبر العرض التوضيحي (خافت حتى لا يطغى على خط يد المتعلم) */
+  .ink-path {
+    fill: none;
+    stroke: var(--ink-drawn);
+    stroke-width: 14;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    opacity: .38;
+    transition: stroke .2s, opacity .2s;
+  }
+
+  /* الخط الحقيقي الذي يرسمه إصبع/قلم المتعلم */
+  .user-ink-path {
+    fill: none;
+    stroke: var(--user-ink);
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  #startArrow {
+    fill: none;
+    stroke: var(--arrow-color);
+    stroke-width: 3.2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    opacity: .85;
+  }
+
+  #liftHand { user-select: none; pointer-events: none; }
+
+  .info-bar {
+    width: 100%;
+    display: flex;
+    justify-content: space-around;
+    flex-wrap: wrap;
+    gap: 6px 10px;
+    font-size: 11.5px;
+    font-weight: 700;
+    color: var(--muted);
+    margin-top: 12px;
+    padding-top: 10px;
+    border-top: 1px dashed var(--border);
+  }
+  .info-bar span { display: flex; align-items: center; gap: 6px; }
+  .dot-mark { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+
+  .actions-grid { width: 100%; display: flex; gap: 10px; margin-top: 14px; }
+  .btn {
+    flex: 1;
+    padding: 10px;
+    font-family: 'Tajawal', sans-serif;
+    font-weight: 700;
+    font-size: 13.5px;
+    border-radius: 12px;
+    border: none;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    transition: all .2s;
+  }
+  .btn-primary { background: var(--primary); color: #fff; }
+  .btn-primary:hover { opacity: 0.92; }
+  .btn-ghost { background: var(--bg); color: var(--ink-main); border: 1.5px solid var(--border); }
+  .btn-ghost:hover { border-color: var(--primary); }
+
+  .speed-ctrl {
+    width: 100%;
+    margin-top: 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 12.5px;
+    font-weight: 700;
+    color: var(--muted);
+    background: var(--bg);
+    padding: 6px 12px;
+    border-radius: 10px;
+  }
+  .speed-ctrl input[type="range"] { flex: 1; accent-color: var(--primary); cursor: pointer; }
+
+  /* ============ لافتة التلميحات الفورية ============ */
+  .hint-banner {
+    position: absolute;
+    top: 8px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(15, 23, 42, .88);
+    color: #fff;
+    font-size: 12px;
+    font-weight: 700;
+    padding: 6px 14px;
+    border-radius: 999px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .2s;
+    z-index: 15;
+    white-space: nowrap;
+    max-width: 90%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .hint-banner.show { opacity: 1; }
+  .hint-banner.warn { background: #dc2626; }
+  .hint-banner.info { background: #2563eb; }
+  .hint-banner.success { background: #16a34a; }
+
+  /* ============ لوحة النتيجة النهائية ============ */
+  .score-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(15, 23, 42, .6);
+    backdrop-filter: blur(2px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .25s;
+    z-index: 20;
+    text-align: center;
+    padding: 16px;
+  }
+  .score-overlay.show { opacity: 1; pointer-events: auto; }
+  .score-stars { font-size: 38px; letter-spacing: 6px; }
+  .score-pct { color: #fff; font-weight: 800; font-size: 24px; }
+  .score-msg { color: #e2e8f0; font-weight: 700; font-size: 13.5px; }
+  .score-actions { display: flex; gap: 10px; margin-top: 8px; }
+  .score-actions .btn { padding: 9px 16px; flex: none; }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <header>
+    <div class="header-titles">
+      <h1>محاكي المسار الحركي لخط الأرقام ✍️</h1>
+      <p>تتبّع الرقم بإصبعك أو بقلمك واتبع الاتجاه الصحيح</p>
+    </div>
+    <div class="header-btns">
+      <button class="tool-btn" id="settingsBtn" title="إعدادات وضع التمرين">⚙️</button>
+      <button class="tool-btn" id="soundBtn" title="التحكم بالصوت">🔊</button>
+      <button class="tool-btn" id="themeBtn" title="الوضع الليلي والنهاري">🌙</button>
+    </div>
+  </header>
+
+  <!-- ============ مصفوفة الأوضاع القابلة للتخصيص ============ -->
+  <div class="settings-panel" id="settingsPanel">
+    <div class="setting-row">
+      <label>🖐️ وسيلة التتبع</label>
+      <div class="seg-group" data-setting="traceMode">
+        <button class="seg-btn" data-value="finger">🖐️ إصبع (عريض)</button>
+        <button class="seg-btn" data-value="stylus">✏️ قلم (دقيق)</button>
+      </div>
+    </div>
+    <div class="setting-row">
+      <label>🎯 نوع النشاط</label>
+      <div class="seg-group" data-setting="activityType">
+        <button class="seg-btn" data-value="free">حر</button>
+        <button class="seg-btn" data-value="guided">موجّه</button>
+        <button class="seg-btn" data-value="shadow_race">سباق الظل</button>
+      </div>
+    </div>
+    <div class="setting-row">
+      <label>🔒 قفل الاتجاه الإجباري</label>
+      <div class="seg-group" data-setting="enforceDirection">
+        <button class="seg-btn" data-value="on">مفعّل</button>
+        <button class="seg-btn" data-value="off">غير مفعّل</button>
+      </div>
+    </div>
+    <div class="setting-row">
+      <label>🪜 مستوى الدعم البصري</label>
+      <div class="seg-group" data-setting="scaffoldingLevel">
+        <button class="seg-btn" data-value="1">1: خط كامل</button>
+        <button class="seg-btn" data-value="2">2: منقط</button>
+        <button class="seg-btn" data-value="3">3: أسطر فقط</button>
+      </div>
+    </div>
+    <div class="settings-divider"></div>
+    <div class="setting-row">
+      <label>🎵 التغذية الصوتية</label>
+      <div class="seg-group" data-setting="soundFeedback">
+        <button class="seg-btn" data-value="off">كتم</button>
+        <button class="seg-btn" data-value="simple">بسيط</button>
+        <button class="seg-btn" data-value="melodic">متكامل</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="digits-row" id="digitsBar" role="tablist"></div>
+
+  <div class="paper-card">
+    <div class="stage-box" id="stageBox">
+      <svg id="stage" viewBox="0 0 200 240">
+        <g id="notebookGrid">
+          <line x1="30" y1="0" x2="30" y2="240" class="notebook-margin" />
+          <line x1="15" y1="52" x2="190" y2="52" class="notebook-line" />
+          <line x1="15" y1="121" x2="190" y2="121" class="notebook-midline" />
+          <line x1="15" y1="190" x2="190" y2="190" class="notebook-baseline" />
+        </g>
+
+        <g id="faintGuidesGroup"></g>
+        <g id="inkGroup"></g>
+        <g id="userInkGroup"></g>
+
+        <path id="startArrow" style="display:none;" marker-end="url(#arrowHead)"></path>
+        <defs>
+          <marker id="arrowHead" markerWidth="7" markerHeight="7" refX="3.4" refY="3.4" orient="auto-start-reverse">
+            <path d="M0,0 L6.8,3.4 L0,6.8 Z" fill="var(--arrow-color)"></path>
+          </marker>
+        </defs>
+
+        <circle id="startMarker" r="7" fill="var(--start-dot)" stroke="#ffffff" stroke-width="2" style="display:none;"></circle>
+        <circle id="endMarker" r="6" fill="var(--end-dot)" stroke="#ffffff" stroke-width="2" style="display:none;"></circle>
+
+        <!-- حلقة تُظهر للمتعلم حجم "ممر التسامح" الحالي أثناء اللمس -->
+        <circle id="userTouchRing" r="10" fill="rgba(16,185,129,0.18)" stroke="var(--user-ink)" stroke-width="2" style="display:none;" pointer-events="none"></circle>
+
+        <text id="liftHand" x="0" y="0" font-size="20" style="display:none;">✋</text>
+
+        <g id="penGroup" style="display:none;" pointer-events="none">
+          <circle id="penCircle" r="9" fill="var(--pen-tip)" stroke="var(--pen-ring)" stroke-width="3"></circle>
+          <text id="penIcon" x="6" y="-6" font-size="14" style="user-select:none;">✏️</text>
+        </g>
+      </svg>
+
+      <div class="hint-banner" id="hintBanner"></div>
+
+      <div class="score-overlay" id="scoreOverlay">
+        <div class="score-stars" id="scoreStars">⭐⭐⭐</div>
+        <div class="score-pct" id="scorePct">0%</div>
+        <div class="score-msg" id="scoreMsg">أحسنت!</div>
+        <div class="score-actions">
+          <button class="btn btn-ghost" id="retryScoreBtn">🔄 إعادة المحاولة</button>
+          <button class="btn btn-primary" id="nextScoreBtn">▶️ الرقم التالي</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="info-bar">
+      <span><span class="dot-mark" style="background:var(--start-dot);"></span> نقطة البداية</span>
+      <span><span class="dot-mark" style="background:var(--user-ink);"></span> خط تتبعك</span>
+      <span><span class="dot-mark" style="background:var(--ink-drawn);"></span> العرض التوضيحي</span>
+      <span><span class="dot-mark" style="background:var(--end-dot);"></span> نهاية الرقم</span>
+    </div>
+
+    <div class="actions-grid">
+      <button class="btn btn-primary" id="playPauseBtn">⏸ إيقاف العرض</button>
+      <button class="btn btn-ghost" id="replayBtn">🔄 إعادة المحاولة</button>
+    </div>
+
+    <div class="speed-ctrl">
+      <span>🐢 تأنّي</span>
+      <input type="range" id="speedSlider" min="0.4" max="2.0" step="0.1" value="1" aria-label="سرعة العرض">
+      <span>🐇 سريع</span>
+    </div>
+  </div>
+
+</div>
+
+<script>
+'use strict';
+
+// =======================================================================
+// 1. مسارات الأرقام الإنجليزية بخط اليد المدرسي (بيانات ثابتة لا تُعدَّل)
+// =======================================================================
+const HANDWRITTEN_NUMBERS = [
+  [ "M 102,54 C 74,54 66,84 66,121 C 66,158 74,188 102,188 C 130,188 138,158 138,121 C 138,84 130,54 102,54 Z" ],
+  [ "M 82,80 L 104,54 L 104,188" ],
+  [ "M 129.9,83.0 C 121.9,93.3 111.7,96.2 103.7,95.1 C 95.7,94.0 81.4,90.2 81.7,76.3 C 82.1,62.4 97.7,52.0 105.9,52.9 C 114.1,53.7 136.9,61.3 131.0,81.5 C 125.1,101.8 85.5,160.4 70.3,174.4 C 55.1,188.3 41.4,169.2 39.7,165.2 C 38.0,161.2 46.0,146.2 60.2,150.2 C 74.4,154.1 103.6,187.7 125.0,188.9 C 146.4,190.0 149.3,180.1 170.0,159.3" ],
+  [ "M 70,66 C 78,50 128,48 130,78 C 132,100 108,110 96,112 C 110,114 136,122 136,152 C 136,184 84,192 68,172" ],
+  [ "M 118,54 L 64,140 L 142,140", "M 118,96 L 118,188" ],
+  [ "M 84,54 L 78,116 C 90,104 138,108 138,150 C 138,186 88,194 70,174", "M 82,54 L 134,54" ],
+  [ "M 120,56 C 86,82 68,124 68,158 C 68,192 134,192 134,154 C 134,120 74,118 72,152" ],
+  [ "M 58.6,60.8 C 66.4,63.9 74.1,67.0 88.7,65.6 C 103.2,64.1 124.5,58.0 145.9,52.0 C 139.2,62.4 130.9,71.6 125.8,83.3 C 120.7,95.0 117.5,104.4 115.2,122.2 C 112.9,140.0 112.6,165.0 112.3,190.0", "M 82.2,121.6 C 95.7,118.6 109.3,115.6 120.5,113.9 C 131.7,112.3 140.6,111.9 149.4,111.6" ],
+  [ "M 73.2,80.5 C 77.5,72.2 81.7,63.8 88.9,59.1 C 96.2,54.4 109.3,52.8 116.5,52.4 C 123.7,52.0 129.8,54.3 132.3,56.9 C 134.7,59.4 134.8,59.7 131.2,67.6 C 127.5,75.5 116.6,91.3 110.3,104.2 C 104.0,117.0 96.1,132.5 93.4,144.7 C 90.8,156.9 91.9,169.8 94.6,177.3 C 97.3,184.8 105.1,190.0 109.8,189.7 C 114.5,189.4 120.5,182.4 122.7,175.6 C 125.0,168.9 127.2,160.9 123.3,149.2 C 119.3,137.5 107.4,116.2 99.1,105.3 C 90.7,94.4 82.0,89.2 73.2,83.9" ],
+  [ "M 115.4,78.4 C 116.7,78.3 118.1,78.2 115.4,74.3 C 112.7,70.4 104.8,58.0 99.0,55.0 C 93.3,52.0 86.1,52.3 80.9,56.2 C 75.8,60.1 69.0,69.5 68.1,78.4 C 67.2,87.2 72.0,102.4 75.7,109.3 C 79.4,116.2 84.8,119.1 90.3,119.8 C 95.7,120.6 104.0,117.8 108.4,114.0 C 112.8,110.2 114.8,102.6 116.6,97.1 C 118.3,91.5 118.3,83.1 118.9,80.7 C 128.6,102.7 137.9,130.1 139.3,147.3 C 140.8,164.5 137.3,178.1 127.6,184.1 C 118.0,190.0 99.8,186.4 81.5,182.9" ]
+];
+
+const START_ARROWS = [
+  [[92, 34], [100, 50]], [[70, 58], [80, 78]], [[145, 70], [130, 83]],
+  [[54, 82], [68, 68]], [[128, 34], [120, 50]], [[62, 34], [82, 52]],
+  [[134, 36], [122, 54]], [[40, 55], [59, 61]], [[63, 98], [73, 81]],
+  [[123, 97], [115, 78]]
+];
+
+// =======================================================================
+// 2. الحالة العامة للتطبيق: مصفوفة الأوضاع القابلة للتخصيص (Settings Matrix)
+// =======================================================================
+const DEFAULT_SETTINGS = {
+  traceMode: 'finger',       // finger | stylus
+  enforceDirection: true,
+  activityType: 'guided',    // free | guided | shadow_race
+  soundFeedback: 'melodic',  // off | simple | melodic
+  scaffoldingLevel: 1        // 1 | 2 | 3
+};
+let settings = loadSettings();
+
+function loadSettings() {
+  try {
+    const saved = JSON.parse(localStorage.getItem('hw-settings') || '{}');
+    return Object.assign({}, DEFAULT_SETTINGS, saved);
+  } catch (e) { return Object.assign({}, DEFAULT_SETTINGS); }
+}
+function saveSettings() {
+  try { localStorage.setItem('hw-settings', JSON.stringify(settings)); } catch (e) {}
+}
+
+let activeDigit = 1;
+let isPlaying = true;
+let animProgress = 0;
+let baseDuration = 2200;
+let speedFactor = 1.0;
+let lastTimestamp = null;
+
+// عناصر الواجهة
+const digitsBar = document.getElementById('digitsBar');
+const stageSvg = document.getElementById('stage');
+const stageBox = document.getElementById('stageBox');
+const faintGuidesGroup = document.getElementById('faintGuidesGroup');
+const inkGroup = document.getElementById('inkGroup');
+const userInkGroup = document.getElementById('userInkGroup');
+const startMarker = document.getElementById('startMarker');
+const endMarker = document.getElementById('endMarker');
+const startArrow = document.getElementById('startArrow');
+const penGroup = document.getElementById('penGroup');
+const penCircle = document.getElementById('penCircle');
+const userTouchRing = document.getElementById('userTouchRing');
+const liftHand = document.getElementById('liftHand');
+const hintBanner = document.getElementById('hintBanner');
+const scoreOverlay = document.getElementById('scoreOverlay');
+const scoreStars = document.getElementById('scoreStars');
+const scorePct = document.getElementById('scorePct');
+const scoreMsg = document.getElementById('scoreMsg');
+const playPauseBtn = document.getElementById('playPauseBtn');
+const replayBtn = document.getElementById('replayBtn');
+const speedSlider = document.getElementById('speedSlider');
+const soundBtn = document.getElementById('soundBtn');
+const themeBtn = document.getElementById('themeBtn');
+const settingsBtn = document.getElementById('settingsBtn');
+const settingsPanel = document.getElementById('settingsPanel');
+
+// =======================================================================
+// 3. محرك الصوت (Web Audio API) — نغمات جيبية هادئة قابلة للتخصيص
+// =======================================================================
+const AudioEngine = (function () {
+  let ctx = null;
+  let melodyOsc = null, melodyGain = null;
+  let lastBuzz = 0;
+
+  function ensureCtx() {
+    if (!ctx) ctx = new (window.AudioContext || window.webkitAudioContext)();
+    if (ctx.state === 'suspended') ctx.resume();
+    return ctx;
+  }
+
+  function tone(freq = 440, type = 'sine', duration = 0.12, gainVal = 0.035) {
+    if (settings.soundFeedback === 'off') return;
+    try {
+      const c = ensureCtx();
+      const osc = c.createOscillator();
+      const gain = c.createGain();
+      osc.type = type;
+      osc.frequency.setValueAtTime(freq, c.currentTime);
+      gain.gain.setValueAtTime(gainVal, c.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.0001, c.currentTime + duration);
+      osc.connect(gain); gain.connect(c.destination);
+      osc.start(); osc.stop(c.currentTime + duration);
+    } catch (e) {}
+  }
+
+  // نغمة صعود/هبوط مستمرة أثناء التتبع النشط، ترتفع كلما اتجه الإصبع نحو أعلى المسار
+  function startMelody() {
+    if (settings.soundFeedback !== 'melodic') return;
+    try {
+      const c = ensureCtx();
+      stopMelody();
+      melodyOsc = c.createOscillator();
+      melodyGain = c.createGain();
+      melodyOsc.type = 'sine';
+      melodyGain.gain.setValueAtTime(0.0001, c.currentTime);
+      melodyGain.gain.linearRampToValueAtTime(0.03, c.currentTime + 0.05);
+      melodyOsc.connect(melodyGain); melodyGain.connect(c.destination);
+      melodyOsc.start();
+    } catch (e) {}
+  }
+  function updateMelody(y, onPath) {
+    if (settings.soundFeedback !== 'melodic' || !melodyOsc) return;
+    const clampedY = Math.min(190, Math.max(52, y));
+    const freq = 330 + (190 - clampedY) / (190 - 52) * 550; // 52(أعلى)->880Hz .. 190(القاعدة)->330Hz
+    melodyOsc.frequency.setTargetAtTime(freq, ctx.currentTime, 0.05);
+    melodyGain.gain.setTargetAtTime(onPath ? 0.03 : 0.006, ctx.currentTime, 0.05);
+  }
+  function stopMelody() {
+    if (melodyOsc) {
+      try {
+        melodyGain.gain.setTargetAtTime(0.0001, ctx.currentTime, 0.04);
+        melodyOsc.stop(ctx.currentTime + 0.15);
+      } catch (e) {}
+      melodyOsc = null; melodyGain = null;
+    }
+  }
+
+  // احتكاك ناعم عند الخروج عن المسار (Muted White Noise)
+  function offPathBuzz() {
+    if (settings.soundFeedback === 'off') return;
+    const now = performance.now();
+    if (now - lastBuzz < 260) return;
+    lastBuzz = now;
+    try {
+      const c = ensureCtx();
+      const bufferSize = c.sampleRate * 0.08;
+      const buffer = c.createBuffer(1, bufferSize, c.sampleRate);
+      const data = buffer.getChannelData(0);
+      for (let i = 0; i < bufferSize; i++) data[i] = (Math.random() * 2 - 1) * 0.5;
+      const noise = c.createBufferSource();
+      noise.buffer = buffer;
+      const filter = c.createBiquadFilter();
+      filter.type = 'lowpass'; filter.frequency.value = 900;
+      const gain = c.createGain();
+      gain.gain.setValueAtTime(0.05, c.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.0001, c.currentTime + 0.08);
+      noise.connect(filter); filter.connect(gain); gain.connect(c.destination);
+      noise.start();
+    } catch (e) {}
+  }
+
+  function warnTone() { tone(220, 'triangle', 0.18, 0.04); }
+  function strokeDoneChime() { tone(660, 'sine', 0.18); }
+  function successChime() {
+    tone(523, 'sine', 0.16); setTimeout(() => tone(659, 'sine', 0.16), 110);
+    setTimeout(() => tone(784, 'sine', 0.26), 220);
+  }
+  function uiTone(freq, type = 'triangle', duration = 0.1) { tone(freq, type, duration); }
+
+  return { tone, startMelody, updateMelody, stopMelody, offPathBuzz, warnTone, strokeDoneChime, successChime, uiTone };
+})();
+
+// =======================================================================
+// 4. أدوات هندسية: تحويل الإحداثيات، أخذ العينات، أقرب نقطة، نقاط الارتكاز
+// =======================================================================
+function getCTMScale() {
+  const ctm = stageSvg.getScreenCTM();
+  return (ctm && ctm.a) ? (1 / ctm.a) : (200 / stageBox.getBoundingClientRect().width);
+}
+function pxToSvg(px) { return px * getCTMScale(); }
+
+function getSvgPoint(evt) {
+  const ctm = stageSvg.getScreenCTM();
+  if (!ctm) return { x: 0, y: 0 };
+  const pt = stageSvg.createSVGPoint();
+  pt.x = evt.clientX; pt.y = evt.clientY;
+  const loc = pt.matrixTransform(ctm.inverse());
+  return { x: loc.x, y: loc.y };
+}
+
+function currentToleranceR() {
+  const px = settings.traceMode === 'stylus' ? 12 : 27; // مطابق لمواصفة P1 (10-14px قلم / 24-30px إصبع)
+  return pxToSvg(px);
+}
+function startHitboxR() { return pxToSvg(17.5); } // قطر 35px
+
+function buildStrokeSamples(pathEl) {
+  const total = pathEl.getTotalLength();
+  const steps = Math.max(24, Math.min(240, Math.ceil(total / 1.5)));
+  const samples = [];
+  for (let i = 0; i <= steps; i++) {
+    const len = (i / steps) * total;
+    const p = pathEl.getPointAtLength(len);
+    samples.push({ x: p.x, y: p.y, len, tx: 0, ty: 0 });
+  }
+  for (let i = 0; i < samples.length; i++) {
+    const prev = samples[Math.max(0, i - 1)];
+    const next = samples[Math.min(samples.length - 1, i + 1)];
+    const dx = next.x - prev.x, dy = next.y - prev.y;
+    const mag = Math.hypot(dx, dy) || 1;
+    samples[i].tx = dx / mag; samples[i].ty = dy / mag;
+  }
+  return { samples, total };
+}
+
+function nearestOnSamples(samples, x, y) {
+  let best = null, bestDist = Infinity;
+  for (const s of samples) {
+    const d = Math.hypot(s.x - x, s.y - y);
+    if (d < bestDist) { bestDist = d; best = s; }
+  }
+  return { sample: best, dist: bestDist };
+}
+
+function buildKeypointLengths(total, count) {
+  const kps = [];
+  for (let i = 1; i <= count; i++) kps.push(total * i / count);
+  return kps;
+}
+
+// =======================================================================
+// 5. تحميل الرقم الحالي: بناء المسارات الباهتة، الهندسة، ونقاط الارتكاز
+// =======================================================================
+let strokeItems = [];   // { faintEl, inkEl, samples, total, keypoints:[len...], passed:[bool...], furthestLen, userPathEl, userD }
+let grandTotalLength = 0;
+let currentStrokeIndex = 0;
+let dragging = false;
+let dirCorrectCount = 0, dirTotalCount = 0;
+let wrongDirStreak = 0;
+let lastDragPoint = null;
+let fingerDown = false; // يُستخدم في وضع سباق الظل
+
+function totalKeypointBudget() { return 10; }
+
+function loadCurrentNumber() {
+  faintGuidesGroup.innerHTML = '';
+  inkGroup.innerHTML = '';
+  userInkGroup.innerHTML = '';
+  strokeItems = [];
+  grandTotalLength = 0;
+  currentStrokeIndex = 0;
+  dirCorrectCount = 0; dirTotalCount = 0; wrongDirStreak = 0;
+  dragging = false; fingerDown = false;
+  raceState.active = false; raceState.done = false;
+  hideScoreOverlay();
+  hideHint();
+  userTouchRing.style.display = 'none';
+  liftHand.style.display = 'none';
+
+  const paths = HANDWRITTEN_NUMBERS[activeDigit];
+  const geoms = paths.map((d) => {
+    const faintWide = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    faintWide.setAttribute('d', d);
+    faintWide.setAttribute('class', 'faint-path');
+    faintGuidesGroup.appendChild(faintWide);
+
+    const faintDotted = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    faintDotted.setAttribute('d', d);
+    faintDotted.setAttribute('class', 'faint-border');
+    faintGuidesGroup.appendChild(faintDotted);
+
+    const inkP = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    inkP.setAttribute('d', d);
+    inkP.setAttribute('class', 'ink-path');
+    const len = inkP.getTotalLength();
+    inkP.style.strokeDasharray = len;
+    inkP.style.strokeDashoffset = len;
+    inkGroup.appendChild(inkP);
+
+    const geo = buildStrokeSamples(faintWide);
+    return { faintWide, faintDotted, inkEl: inkP, samples: geo.samples, total: geo.total, len };
+  });
+
+  const grandLen = geoms.reduce((s, g) => s + g.total, 0);
+  geoms.forEach((g) => {
+    const kpCount = Math.max(2, Math.round(totalKeypointBudget() * (g.total / grandLen)));
+    strokeItems.push({
+      faintEl: g.faintWide, faintBorderEl: g.faintDotted, inkEl: g.inkEl,
+      samples: g.samples, total: g.total, length: g.len,
+      keypoints: buildKeypointLengths(g.total, kpCount),
+      passed: new Array(kpCount).fill(false),
+      furthestLen: 0, complete: false,
+      userPathEl: null, userD: ''
+    });
+    grandTotalLength += g.len;
+  });
+
+  if (strokeItems.length > 0 && grandTotalLength > 0) {
+    const first = strokeItems[0];
+    const last = strokeItems[strokeItems.length - 1];
+    const ptStart = first.faintEl.getPointAtLength(0);
+    const ptEnd = last.faintEl.getPointAtLength(last.faintEl.getTotalLength());
+
+    startMarker.setAttribute('cx', ptStart.x); startMarker.setAttribute('cy', ptStart.y);
+    startMarker.style.display = 'block';
+    endMarker.setAttribute('cx', ptEnd.x); endMarker.setAttribute('cy', ptEnd.y);
+    endMarker.style.display = 'block';
+
+    penGroup.setAttribute('transform', `translate(${ptStart.x}, ${ptStart.y})`);
+    penGroup.style.display = 'block';
+
+    const arrow = START_ARROWS[activeDigit];
+    if (arrow) {
+      const [tail, head] = arrow;
+      startArrow.setAttribute('d', `M ${tail[0]},${tail[1]} L ${head[0]},${head[1]}`);
+      startArrow.style.display = 'block';
+      startArrow.style.opacity = '0.85';
+    } else {
+      startArrow.style.display = 'none';
+    }
+  }
+
+  applyScaffolding();
+  updateCorridorVisual();
+
+  animProgress = 0;
+  lastTimestamp = null;
+}
+
+// مستوى الدعم البصري: 1 خط كامل | 2 منقّط فقط | 3 أسطر الكراس فقط
+function applyScaffolding() {
+  strokeItems.forEach((s) => {
+    s.faintEl.style.display = settings.scaffoldingLevel === 1 ? '' : 'none';
+    s.faintBorderEl.style.display = settings.scaffoldingLevel <= 2 ? '' : 'none';
+  });
+}
+
+// إظهار "ممر التسامح" الحقيقي بصرياً حسب وسيلة التتبع الحالية
+function updateCorridorVisual() {
+  const r = currentToleranceR();
+  strokeItems.forEach((s) => { s.faintEl.style.strokeWidth = (r * 2).toFixed(1); });
+  userTouchRing.setAttribute('r', r.toFixed(1));
+}
+
+// =======================================================================
+// 6. حلقة العرض التوضيحي التلقائي + منطق سباق الظل (60FPS Loop)
+// =======================================================================
+const raceState = { active: false, done: false, progress: 0, timeInCorridor: 0, timeTotal: 0 };
+
+function animationLoop(timestamp) {
+  if (!lastTimestamp) lastTimestamp = timestamp;
+  const delta = timestamp - lastTimestamp;
+  lastTimestamp = timestamp;
+
+  if (grandTotalLength > 0) {
+    const isRace = settings.activityType === 'shadow_race';
+
+    if (isRace) {
+      raceState.active = true;
+      if (!raceState.done && fingerDown) {
+        const rate = delta / (baseDuration / speedFactor);
+        raceState.progress = Math.min(1, raceState.progress + rate);
+      }
+    } else if (isPlaying) {
+      const rate = delta / (baseDuration / speedFactor);
+      animProgress += rate;
+      if (animProgress >= 1.2) { animProgress = 0; AudioEngine.tone(600, 'sine', 0.2); }
+    }
+
+    const progress = isRace ? raceState.progress : Math.min(Math.max(animProgress, 0), 1.0);
+    const targetTravel = progress * grandTotalLength;
+
+    let accumulated = 0, penPos = null;
+    for (const item of strokeItems) {
+      const len = item.length;
+      if (!isRace) {
+        if (targetTravel <= accumulated) item.inkEl.style.strokeDashoffset = len;
+        else if (targetTravel >= accumulated + len) item.inkEl.style.strokeDashoffset = 0;
+        else item.inkEl.style.strokeDashoffset = len - (targetTravel - accumulated);
+      }
+      if (targetTravel >= accumulated && targetTravel <= accumulated + len) {
+        penPos = item.inkEl.getPointAtLength(targetTravel - accumulated);
+      } else if (targetTravel > accumulated + len) {
+        penPos = item.inkEl.getPointAtLength(len);
+      }
+      accumulated += len;
+    }
+    if (penPos) penGroup.setAttribute('transform', `translate(${penPos.x}, ${penPos.y})`);
+
+    if (!isRace) {
+      startArrow.style.opacity = progress > 0.04 ? '0' : '0.85';
+    }
+
+    if (isRace && fingerDown && lastDragPoint && penPos) {
+      raceState.timeTotal += delta;
+      const d = Math.hypot(penPos.x - lastDragPoint.x, penPos.y - lastDragPoint.y);
+      const onPace = d <= currentToleranceR();
+      if (onPace) { raceState.timeInCorridor += delta; penCircle.style.stroke = 'var(--pen-ring)'; hideHint(); }
+      else { penCircle.style.stroke = 'var(--end-dot)'; showHint('تابع نفس سرعتي 🐢', 'warn'); AudioEngine.offPathBuzz(); }
+    }
+    if (isRace && raceState.progress >= 1 && !raceState.done) {
+      raceState.done = true;
+      finishRace();
+    }
+  }
+
+  requestAnimationFrame(animationLoop);
+}
+requestAnimationFrame(animationLoop);
+
+function finishRace() {
+  fingerDown = false;
+  const pct = raceState.timeTotal > 0 ? Math.round((raceState.timeInCorridor / raceState.timeTotal) * 100) : 0;
+  showScoreOverlay(pct);
+}
+
+// =======================================================================
+// 7. محرك التتبع التفاعلي (Pointer Events) — الممر، القفل، الاتجاه، السكتات
+// =======================================================================
+function showHint(text, type, duration) {
+  hintBanner.textContent = text;
+  hintBanner.className = 'hint-banner show' + (type ? ' ' + type : '');
+  if (duration) {
+    clearTimeout(showHint._t);
+    showHint._t = setTimeout(hideHint, duration);
+  }
+}
+function hideHint() { hintBanner.className = 'hint-banner'; }
+
+function flashStageWarning() {
+  stageBox.classList.remove('stage-warn');
+  void stageBox.offsetWidth; // إعادة تشغيل الحركة
+  stageBox.classList.add('stage-warn');
+}
+
+function animateLiftHand(from, to) {
+  liftHand.style.display = 'block';
+  const start = performance.now();
+  const duration = 650;
+  function step(ts) {
+    const t = Math.min(1, (ts - start) / duration);
+    const ease = t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
+    const x = from.x + (to.x - from.x) * ease;
+    const y = from.y + (to.y - from.y) * ease - 14 * Math.sin(Math.PI * t);
+    liftHand.setAttribute('transform', `translate(${x}, ${y})`);
+    liftHand.style.opacity = t > 0.85 ? String(1 - (t - 0.85) / 0.15) : '1';
+    if (t < 1) requestAnimationFrame(step); else liftHand.style.display = 'none';
+  }
+  requestAnimationFrame(step);
+}
+
+function currentStroke() { return strokeItems[currentStrokeIndex]; }
+
+function beginUserStroke(pt) {
+  const stroke = currentStroke();
+  const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+  path.setAttribute('class', 'user-ink-path');
+  path.setAttribute('stroke-width', (currentToleranceR() * 2).toFixed(1));
+  userInkGroup.appendChild(path);
+  stroke.userPathEl = path;
+  stroke.userD = `M ${pt.x.toFixed(2)},${pt.y.toFixed(2)}`;
+  path.setAttribute('d', stroke.userD);
+}
+
+function appendUserPoint(pt) {
+  const stroke = currentStroke();
+  if (!stroke.userPathEl) return;
+  stroke.userD += ` L ${pt.x.toFixed(2)},${pt.y.toFixed(2)}`;
+  stroke.userPathEl.setAttribute('d', stroke.userD);
+}
+
+function onPointerDown(evt) {
+  if (settings.activityType === 'shadow_race') {
+    fingerDown = true;
+    lastDragPoint = getSvgPoint(evt);
+    stageSvg.setPointerCapture(evt.pointerId);
+    return;
+  }
+  if (grandTotalLength === 0 || currentStrokeIndex >= strokeItems.length) return;
+  const pt = getSvgPoint(evt);
+  const stroke = currentStroke();
+  const startPt = stroke.samples[0];
+  const distToStart = Math.hypot(pt.x - startPt.x, pt.y - startPt.y);
+  const guided = settings.activityType === 'guided';
+
+  if (guided && distToStart > startHitboxR()) {
+    flashStageWarning();
+    showHint('ابدأ من النقطة الخضراء 🟢', 'warn', 1200);
+    AudioEngine.warnTone();
+    return;
+  }
+
+  dragging = true;
+  stageSvg.setPointerCapture(evt.pointerId);
+  beginUserStroke(pt);
+  lastDragPoint = pt;
+  userTouchRing.style.display = 'block';
+  userTouchRing.setAttribute('cx', pt.x); userTouchRing.setAttribute('cy', pt.y);
+  AudioEngine.startMelody();
+  hideHint();
+}
+
+function onPointerMove(evt) {
+  const pt = getSvgPoint(evt);
+
+  if (settings.activityType === 'shadow_race') {
+    if (fingerDown) lastDragPoint = pt;
+    return;
+  }
+
+  if (!dragging) return;
+  const stroke = currentStroke();
+  const { sample, dist } = nearestOnSamples(stroke.samples, pt.x, pt.y);
+  const R = currentToleranceR();
+  const onPath = dist <= R;
+
+  userTouchRing.setAttribute('cx', pt.x); userTouchRing.setAttribute('cy', pt.y);
+  userTouchRing.setAttribute('stroke', onPath ? 'var(--user-ink)' : 'var(--end-dot)');
+  userTouchRing.setAttribute('fill', onPath ? 'rgba(16,185,129,0.18)' : 'rgba(239,68,68,0.18)');
+
+  // فحص الاتجاه: مقارنة متجه حركة المستخدم بمماس المسار عند أقرب نقطة
+  if (lastDragPoint) {
+    const mvx = pt.x - lastDragPoint.x, mvy = pt.y - lastDragPoint.y;
+    const mag = Math.hypot(mvx, mvy);
+    if (mag > 0.6) {
+      const dot = (mvx / mag) * sample.tx + (mvy / mag) * sample.ty;
+      dirTotalCount++;
+      if (dot >= 0) { dirCorrectCount++; wrongDirStreak = Math.max(0, wrongDirStreak - 1); }
+      else if (settings.enforceDirection && settings.activityType === 'guided') {
+        wrongDirStreak++;
+        if (wrongDirStreak >= 4) {
+          wrongDirStreak = 0;
+          flashStageWarning();
+          showHint('عكس الاتجاه الصحيح! اتبع السهم 🔄', 'warn', 1000);
+          AudioEngine.warnTone();
+        }
+      }
+    }
+  }
+
+  if (onPath) {
+    appendUserPoint({ x: sample.x, y: sample.y });
+    stroke.furthestLen = Math.max(stroke.furthestLen, sample.len);
+    stroke.keypoints.forEach((kpLen, i) => { if (kpLen <= stroke.furthestLen + R * 0.5) stroke.passed[i] = true; });
+    AudioEngine.updateMelody(sample.y, true);
+  } else {
+    AudioEngine.updateMelody(pt.y, false);
+    AudioEngine.offPathBuzz();
+  }
+
+  lastDragPoint = pt;
+}
+
+function onPointerUp(evt) {
+  if (settings.activityType === 'shadow_race') {
+    fingerDown = false;
+    try { stageSvg.releasePointerCapture(evt.pointerId); } catch (e) {}
+    return;
+  }
+  if (!dragging) return;
+  dragging = false;
+  try { stageSvg.releasePointerCapture(evt.pointerId); } catch (e) {}
+  AudioEngine.stopMelody();
+  userTouchRing.style.display = 'none';
+
+  const stroke = currentStroke();
+  const finished = stroke.furthestLen >= stroke.total * 0.88;
+
+  if (!finished) {
+    if (settings.activityType === 'guided') {
+      showHint('تابع حتى تكمل الرقم بالكامل ✏️', 'info', 1400);
+    }
+    return; // يبقى الأثر المرسوم جزئياً، ويمكن للمتعلم إعادة المحاولة بالضغط على "إعادة المحاولة"
+  }
+
+  stroke.complete = true;
+  AudioEngine.strokeDoneChime();
+
+  const isLastStroke = currentStrokeIndex >= strokeItems.length - 1;
+  if (!isLastStroke) {
+    const fromPt = stroke.samples[stroke.samples.length - 1];
+    currentStrokeIndex++;
+    const toStart = currentStroke().samples[0];
+    showHint('ارفع إصبعك وانتقل ✋', 'info', 1300);
+    animateLiftHand(fromPt, toStart);
+  } else if (settings.activityType === 'guided') {
+    const pct = computeFinalScore();
+    AudioEngine.successChime();
+    showScoreOverlay(pct);
+  }
+}
+
+stageSvg.addEventListener('pointerdown', onPointerDown);
+stageSvg.addEventListener('pointermove', onPointerMove);
+stageSvg.addEventListener('pointerup', onPointerUp);
+stageSvg.addEventListener('pointercancel', onPointerUp);
+stageSvg.addEventListener('pointerleave', (e) => { if (settings.activityType !== 'shadow_race') onPointerUp(e); });
+
+// =======================================================================
+// 8. خوارزمية التقييم الحركي المرن (Fuzzy Trajectory Matching)
+// =======================================================================
+function computeFinalScore() {
+  let passedTotal = 0, kpTotal = 0;
+  strokeItems.forEach((s) => { passedTotal += s.passed.filter(Boolean).length; kpTotal += s.passed.length; });
+  const kpScore = kpTotal > 0 ? (passedTotal / kpTotal) : 0;
+  const dirScore = dirTotalCount > 0 ? (dirCorrectCount / dirTotalCount) : 1;
+  const score = Math.round((kpScore * 70 + dirScore * 30));
+  return Math.min(100, Math.max(0, score));
+}
+
+function showScoreOverlay(pct) {
+  let stars = 0;
+  if (pct >= 85) stars = 3; else if (pct >= 60) stars = 2; else if (pct >= 35) stars = 1;
+  scoreStars.textContent = '⭐'.repeat(stars) + '☆'.repeat(3 - stars);
+  scorePct.textContent = pct + '%';
+  scoreMsg.textContent = stars === 3 ? 'ممتاز! 🎉' : stars === 2 ? 'أحسنت، واصل التدريب 👍' : stars === 1 ? 'جيد، حاول مجدداً لتحسين الدقة' : 'حاول مرة أخرى 💪';
+  scoreOverlay.classList.add('show');
+}
+function hideScoreOverlay() { scoreOverlay.classList.remove('show'); }
+
+document.getElementById('retryScoreBtn').addEventListener('click', () => { AudioEngine.uiTone(480); loadCurrentNumber(); });
+document.getElementById('nextScoreBtn').addEventListener('click', () => {
+  AudioEngine.uiTone(560);
+  selectDigit((activeDigit + 1) % 10);
+});
+
+// =======================================================================
+// 9. بناء شريط الأرقام 0-9
+// =======================================================================
+function selectDigit(i) {
+  activeDigit = i;
+  document.querySelectorAll('.digit-btn').forEach((b, idx) => b.classList.toggle('active', idx === i));
+  loadCurrentNumber();
+}
+function buildDigitsBar() {
+  digitsBar.innerHTML = '';
+  for (let i = 0; i <= 9; i++) {
+    const btn = document.createElement('button');
+    btn.className = 'digit-btn' + (i === activeDigit ? ' active' : '');
+    btn.textContent = i;
+    btn.setAttribute('aria-label', 'الرقم ' + i);
+    btn.addEventListener('click', () => {
+      if (activeDigit === i) return;
+      AudioEngine.uiTone(450 + i * 25, 'triangle', 0.1);
+      selectDigit(i);
+    });
+    digitsBar.appendChild(btn);
+  }
+}
+
+// =======================================================================
+// 10. ربط لوحة الإعدادات (مصفوفة الأوضاع القابلة للتخصيص) بالواجهة
+// =======================================================================
+function applySettingsUI() {
+  document.querySelectorAll('.seg-group').forEach((group) => {
+    const key = group.dataset.setting;
+    let value = settings[key];
+    if (key === 'enforceDirection') value = value ? 'on' : 'off';
+    if (key === 'scaffoldingLevel') value = String(value);
+    group.querySelectorAll('.seg-btn').forEach((btn) => {
+      btn.classList.toggle('active', btn.dataset.value === String(value));
+    });
+  });
+}
+
+document.querySelectorAll('.seg-group').forEach((group) => {
+  const key = group.dataset.setting;
+  group.querySelectorAll('.seg-btn').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      let val = btn.dataset.value;
+      if (key === 'enforceDirection') val = val === 'on';
+      if (key === 'scaffoldingLevel') val = parseInt(val, 10);
+      settings[key] = val;
+      saveSettings();
+      applySettingsUI();
+      AudioEngine.uiTone(500, 'triangle', 0.08);
+
+      if (key === 'traceMode') updateCorridorVisual();
+      if (key === 'scaffoldingLevel') applyScaffolding();
+      if (key === 'activityType') loadCurrentNumber();
+    });
+  });
+});
+
+settingsBtn.addEventListener('click', () => {
+  settingsPanel.classList.toggle('open');
+  settingsBtn.classList.toggle('is-open', settingsPanel.classList.contains('open'));
+});
+
+// =======================================================================
+// 11. عناصر التحكم العامة
+// =======================================================================
+playPauseBtn.addEventListener('click', () => {
+  isPlaying = !isPlaying;
+  playPauseBtn.textContent = isPlaying ? '⏸ إيقاف العرض' : '▶️ استئناف العرض';
+  AudioEngine.uiTone(isPlaying ? 520 : 360);
+});
+
+replayBtn.addEventListener('click', () => {
+  AudioEngine.uiTone(580);
+  loadCurrentNumber();
+  isPlaying = true;
+  playPauseBtn.textContent = '⏸ إيقاف العرض';
+});
+
+speedSlider.addEventListener('input', (e) => { speedFactor = parseFloat(e.target.value); });
+
+soundBtn.addEventListener('click', () => {
+  const order = ['melodic', 'simple', 'off'];
+  const idx = order.indexOf(settings.soundFeedback);
+  settings.soundFeedback = order[(idx + 1) % order.length];
+  saveSettings();
+  applySettingsUI();
+  soundBtn.textContent = settings.soundFeedback === 'off' ? '🔇' : settings.soundFeedback === 'simple' ? '🔉' : '🔊';
+});
+
+// =======================================================================
+// 12. الوضع الليلي والنهاري
+// =======================================================================
+function applyTheme(theme) {
+  document.documentElement.setAttribute('data-theme', theme);
+  themeBtn.textContent = theme === 'dark' ? '☀️' : '🌙';
+  localStorage.setItem('hw-theme', theme);
+  updateCorridorVisual();
+}
+themeBtn.addEventListener('click', () => {
+  const current = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+  applyTheme(current);
+  AudioEngine.uiTone(current === 'dark' ? 340 : 560);
+});
+(function initTheme() {
+  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  const saved = localStorage.getItem('hw-theme') || (prefersDark ? 'dark' : 'light');
+  applyTheme(saved);
+})();
+
+window.addEventListener('resize', updateCorridorVisual);
+
+// =======================================================================
+// 13. تهيئة بيانات لحظية جاهزة للمزامنة المستقبلية (P5 — Data Ready)
+// كل عينة لمس مخزَّنة كمصفوفة مدمجة خفيفة [x, y, timestamp, pressure]
+// بحيث يسهل بثها عبر أي خادم Realtime (WebSocket) لاحقاً دون تعديل الواجهة.
+// =======================================================================
+let traceSampleLog = [];
+stageSvg.addEventListener('pointermove', (evt) => {
+  if (!dragging && !fingerDown) return;
+  const p = getSvgPoint(evt);
+  traceSampleLog.push([+p.x.toFixed(2), +p.y.toFixed(2), Math.round(evt.timeStamp), evt.pressure || 0.5]);
+  if (traceSampleLog.length > 2000) traceSampleLog.shift();
+});
+
+// =======================================================================
+// بدء التشغيل
+// =======================================================================
+applySettingsUI();
+soundBtn.textContent = settings.soundFeedback === 'off' ? '🔇' : settings.soundFeedback === 'simple' ? '🔉' : '🔊';
+buildDigitsBar();
+loadCurrentNumber();
+</script>
+</body>
+</html>
