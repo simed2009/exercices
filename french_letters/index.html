@@ -819,6 +819,18 @@ button:active { transform: translateY(0); }
       </svg>
       <!-- Free-drawing canvas -->
       <canvas id="drawCanvas"></canvas>
+
+      <!-- Diagnostics SVG overlay (hidden, shown after eval) — must live inside
+           stage-box so its viewBox scales/positions against the SAME box as
+           practiceSvg; as a child of practice-panel it was scaling against the
+           header+toolbar-inclusive panel instead, so the dots came out
+           offset and the wrong size relative to the letter guide. -->
+      <svg id="diagnosticsSvg"
+           viewBox="0 0 200 240"
+           preserveAspectRatio="xMidYMid meet"
+           style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;display:none;">
+        <g id="diagnosticsGroup"></g>
+      </svg>
     </div>
 
     <!-- FAB: show demo on mobile -->
@@ -858,14 +870,6 @@ button:active { transform: translateY(0); }
 
     <!-- Direction warning toast (inside practice panel) -->
     <div id="directionToast">⚠️ ابدأ دائماً من النقطة الخضراء 🟢</div>
-
-    <!-- Diagnostics SVG overlay (hidden, shown after eval) -->
-    <svg id="diagnosticsSvg"
-         viewBox="0 0 200 240"
-         preserveAspectRatio="xMidYMid meet"
-         style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;display:none;">
-      <g id="diagnosticsGroup"></g>
-    </svg>
 
   </div><!-- /practice-panel -->
 
