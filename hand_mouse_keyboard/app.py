@@ -1,12 +1,14 @@
-"""تحكم باليد: حرّك مؤشر الفأرة على الشاشة الثانية بإصبعك، وانقر واكتب
+"""تحكم باليد: حرّك مؤشر الفأرة على الشاشة الثانية بإصبعك، وانقر واكتب وارسم
 بإيماءات يدك أمام الكاميرا - بنفس منطق إيماءات صفحة Finger Board.
 
 الإيماءات:
-  - السبابة وحدها ممدودة  -> تحريك المؤشر.
-  - السبابة + الوسطى معًا  -> تجميد المؤشر (لإعادة وضع يدك دون تحريكه).
+  - السبابة وحدها ممدودة  -> تحريك المؤشر (أو الرسم إن كانت لوحة الرسم ظاهرة).
+  - السبابة + الوسطى معًا  -> تجميد المؤشر / رفع القلم.
   - قرصة سريعة (الإبهام + السبابة) -> نقرة.
-  - قرصتان متتاليتان بسرعة -> نقرة مزدوجة.
+  - قرصتان متتاليتان بسرعة -> نقرة مزدوجة (تمسح لوحة الرسم إن كانت ظاهرة).
   - فرد الكف (كل الأصابع ممدودة) لمدة ثانية تقريبًا -> إظهار/إخفاء لوحة المفاتيح.
+  - زر "🎨 إظهار/إخفاء لوحة الرسم" في نافذة التحكم -> يفتح لوحة بيضاء على الشاشة
+    الهدف يمكنك الرسم عليها بإصبعك، مع أدوات لون/ممحاة/مسح كلي في الأعلى.
 """
 
 import time
@@ -19,6 +21,7 @@ from PIL import Image, ImageTk
 
 import config
 import screen_utils
+from drawing_board import DrawingBoard
 from hand_tracker import HandTracker
 from smoothing import ExponentialSmoother
 from virtual_keyboard import VirtualKeyboard
@@ -38,6 +41,7 @@ class HandMouseApp:
         self.smoother = ExponentialSmoother(config.SMOOTHING_ALPHA)
         self.running = False
         self.keyboard = None
+        self.drawing_board = None
 
         self.was_pinching = False
         self.last_click_time = 0.0
@@ -82,11 +86,13 @@ class HandMouseApp:
         self.stop_btn.grid(row=0, column=1, padx=5)
         self.kb_btn = ttk.Button(btns, text="⌨ إظهار/إخفاء لوحة المفاتيح", command=self.toggle_keyboard, state="disabled")
         self.kb_btn.grid(row=0, column=2, padx=5)
+        self.draw_btn = ttk.Button(btns, text="🎨 إظهار/إخفاء لوحة الرسم", command=self.toggle_drawing_board, state="disabled")
+        self.draw_btn.grid(row=0, column=3, padx=5)
 
         hint = (
-            "السبابة وحدها = تحريك المؤشر\n"
-            "السبابة + الوسطى = تجميد المؤشر\n"
-            "قرصة سريعة = نقرة | قرصتان = نقرة مزدوجة\n"
+            "السبابة وحدها = تحريك المؤشر (أو الرسم إذا كانت لوحة الرسم ظاهرة)\n"
+            "السبابة + الوسطى = تجميد المؤشر / رفع القلم\n"
+            "قرصة سريعة = نقرة | قرصتان = نقرة مزدوجة (تمسح لوحة الرسم إن كانت ظاهرة)\n"
             "فرد الكف لمدة ثانية = إظهار/إخفاء لوحة المفاتيح"
         )
         ttk.Label(self.root, text=hint, foreground="#666", justify="right").pack(**pad)
@@ -110,14 +116,17 @@ class HandMouseApp:
         self.tracker = HandTracker()
         self.smoother.reset()
 
+        bounds = screen_utils.monitor_bounds(self.target_monitor)
         if self.keyboard is None:
-            bounds = screen_utils.monitor_bounds(self.target_monitor)
             self.keyboard = VirtualKeyboard(self.root, bounds)
+        if self.drawing_board is None:
+            self.drawing_board = DrawingBoard(self.root, bounds)
 
         self.running = True
         self.start_btn.config(state="disabled")
         self.stop_btn.config(state="normal")
         self.kb_btn.config(state="normal")
+        self.draw_btn.config(state="normal")
         self.status_var.set("جارٍ البحث عن يد…")
         self._update_frame()
 
@@ -136,6 +145,10 @@ class HandMouseApp:
     def toggle_keyboard(self):
         if self.keyboard is not None:
             self.keyboard.toggle()
+
+    def toggle_drawing_board(self):
+        if self.drawing_board is not None:
+            self.drawing_board.toggle()
 
     # --------------------------------------------------------------- loop --
     def _update_frame(self):
@@ -172,6 +185,12 @@ class HandMouseApp:
             last_x, last_y = self.smoother.last()
             screen_x = mx + last_x * mw
             screen_y = my + last_y * mh
+
+        # --- drawing board: draw while moving, lift the pen otherwise ---
+        if self.drawing_board is not None and self.drawing_board.is_visible():
+            self.drawing_board.handle_pointer(
+                screen_x, screen_y, pen_down=should_move and not g.is_pinching
+            )
 
         # --- pinch => click / double click (rising edge only) ---
         if g.is_pinching and not self.was_pinching:
@@ -226,6 +245,8 @@ class HandMouseApp:
         self.stop()
         if self.keyboard is not None:
             self.keyboard.destroy()
+        if self.drawing_board is not None:
+            self.drawing_board.destroy()
         self.root.destroy()
 
 
