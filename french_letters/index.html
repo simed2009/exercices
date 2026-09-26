@@ -1,0 +1,1873 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<title>تعلم كتابة الحروف الفرنسية ✏️</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+Bhaijaan+2:wght@500;700;800&family=Tajawal:wght@400;500;700&family=Caveat:wght@600;700&display=swap" rel="stylesheet">
+<style>
+/* ===================================================
+   CSS VARIABLES — Light & Dark Mode
+=================================================== */
+:root {
+  --bg:           #f0f4fa;
+  --card:         #ffffff;
+  --border:       #dde4ee;
+  --ink:          #0f172a;
+  --muted:        #64748b;
+  --primary:      #2563eb;
+  --primary-lt:   #dbeafe;
+  --teal:         #0d9488;
+  --amber:        #f59e0b;
+  --red:          #ef4444;
+  --green:        #10b981;
+  --shadow:       0 8px 28px -8px rgba(15,23,42,.10);
+  --shadow-lg:    0 16px 40px -10px rgba(15,23,42,.15);
+
+  /* Notebook colors */
+  --nb-line:      #c8d4e8;
+  --nb-mid:       #c8d4e8;
+  --nb-base:      #8fa8c8;
+  --nb-margin:    #fca5a5;
+
+  /* Path colors */
+  --guide-fill:   #dde9ff;
+  --guide-stroke: #94a3b8;
+  --ink-drawn:    #2563eb;
+  --pen-tip:      #f59e0b;
+  --pen-ring:     #ef4444;
+  --start-dot:    #10b981;
+  --end-dot:      #ef4444;
+  --arrow-clr:    #334155;
+}
+[data-theme="dark"] {
+  --bg:           #0b1120;
+  --card:         #131d33;
+  --border:       #1e2e48;
+  --ink:          #f1f5f9;
+  --muted:        #94a3b8;
+  --primary:      #38bdf8;
+  --primary-lt:   #0c2848;
+  --shadow:       0 10px 32px -8px rgba(0,0,0,.45);
+  --shadow-lg:    0 20px 50px -12px rgba(0,0,0,.60);
+  --nb-line:      #1e2f48;
+  --nb-mid:       #1e2f48;
+  --nb-base:      #2e4260;
+  --nb-margin:    #7f1d1d;
+  --guide-fill:   #0f2040;
+  --guide-stroke: #475569;
+  --ink-drawn:    #38bdf8;
+  --pen-tip:      #fbbf24;
+  --pen-ring:     #f87171;
+  --start-dot:    #34d399;
+  --end-dot:      #f87171;
+  --arrow-clr:    #cbd5e1;
+}
+
+/* ===================================================
+   RESET & BASE
+=================================================== */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html {
+  height: 100%;
+  touch-action: manipulation;
+}
+body {
+  font-family: 'Tajawal', sans-serif;
+  background: var(--bg);
+  color: var(--ink);
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  transition: background .3s, color .3s;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ===================================================
+   CONFETTI OVERLAY (fixed, top layer)
+=================================================== */
+#fxCanvas {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9999;
+}
+
+/* ===================================================
+   TOP BAR
+=================================================== */
+.top-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: var(--card);
+  border-bottom: 1.5px solid var(--border);
+  box-shadow: var(--shadow);
+  flex-shrink: 0;
+  z-index: 100;
+  user-select: none;
+}
+
+.app-title {
+  font-family: 'Baloo Bhaijaan 2', sans-serif;
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--primary);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* Letter selector tabs A-F */
+.digits-scroll {
+  flex: 1;
+  display: flex;
+  gap: 5px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  padding: 2px 4px;
+  -webkit-overflow-scrolling: touch;
+}
+.digits-scroll::-webkit-scrollbar { display: none; }
+
+.digit-tab {
+  flex-shrink: 0;
+  scroll-snap-align: start;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  border: 2px solid transparent;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: 'Caveat', cursive;
+  font-size: 24px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all .16s ease;
+  line-height: 1;
+  -webkit-tap-highlight-color: transparent;
+}
+.digit-tab:hover {
+  background: var(--primary-lt);
+  border-color: var(--primary);
+  color: var(--primary);
+}
+.digit-tab.active {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(37,99,235,.35);
+  transform: scale(1.08);
+}
+
+/* Top icon buttons */
+.tool-icon {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  border: 1.5px solid var(--border);
+  background: var(--card);
+  color: var(--ink);
+  font-size: 17px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all .15s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+.tool-icon:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+  transform: translateY(-1px);
+}
+.tool-icon.active-btn {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: #fff;
+}
+
+/* ===================================================
+   MAIN WORK AREA
+=================================================== */
+.main-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+  padding: 10px 10px 6px;
+  gap: 8px;
+  min-height: 0;
+}
+
+@media (min-width: 768px) {
+  .main-area {
+    flex-direction: row;
+    align-items: stretch;
+    padding: 14px 16px 10px;
+    gap: 14px;
+  }
+}
+
+/* ===================================================
+   DEMO PANEL (animation preview)
+=================================================== */
+.demo-panel {
+  background: var(--card);
+  border: 1.5px solid var(--border);
+  border-radius: 18px;
+  box-shadow: var(--shadow);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  overflow: hidden;
+  transition: all .3s ease;
+}
+
+@media (max-width: 767px) {
+  .demo-panel {
+    display: none;
+  }
+  .demo-panel.visible {
+    display: flex;
+    position: fixed;
+    inset: 0;
+    z-index: 200;
+    border-radius: 0;
+    border: none;
+  }
+}
+
+@media (min-width: 768px) {
+  .demo-panel {
+    flex: 0 0 42%;
+    min-width: 0;
+  }
+}
+
+.demo-header {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px 10px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.demo-header h2 {
+  font-family: 'Baloo Bhaijaan 2', sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.demo-close-btn {
+  display: none;
+}
+@media (max-width: 767px) {
+  .demo-close-btn {
+    display: flex;
+  }
+}
+
+.demo-stage {
+  flex: 1;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px;
+  min-height: 0;
+}
+.demo-stage svg {
+  width: 100%;
+  height: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+.demo-controls {
+  width: 100%;
+  padding: 10px 14px 14px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.guide-note {
+  font-size: 12.5px;
+  color: var(--muted);
+  text-align: center;
+}
+.guide-note b { color: var(--red); }
+
+.speed-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--muted);
+}
+.speed-row input[type="range"] {
+  flex: 1;
+  accent-color: var(--primary);
+  cursor: pointer;
+  height: 5px;
+}
+
+.demo-btn-row {
+  display: flex;
+  gap: 7px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+/* ===================================================
+   PRACTICE PANEL (drawing canvas)
+=================================================== */
+.practice-panel {
+  flex: 1;
+  background: var(--card);
+  border: 1.5px solid var(--border);
+  border-radius: 18px;
+  box-shadow: var(--shadow-lg);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-height: 0;
+  position: relative;
+}
+
+.practice-header {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px 8px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.practice-header h2 {
+  font-family: 'Baloo Bhaijaan 2', sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.number-badge {
+  font-family: 'Caveat', cursive;
+  font-size: 19px;
+  font-weight: 700;
+  background: var(--primary);
+  color: #fff;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 3px 10px rgba(37,99,235,.3);
+}
+
+.stage-box {
+  flex: 1;
+  position: relative;
+  min-height: 0;
+  overflow: hidden;
+}
+.stage-box svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+.stage-box canvas#drawCanvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  cursor: crosshair;
+  touch-action: none;
+  display: block;
+}
+
+/* ===================================================
+   TOOLBAR (colors, sizes, actions)
+=================================================== */
+.toolbar {
+  flex-shrink: 0;
+  background: var(--card);
+  border-top: 1.5px solid var(--border);
+  padding: 8px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.palette-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+.color-dot {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 2.5px solid #fff;
+  box-shadow: 0 2px 6px rgba(0,0,0,.18);
+  cursor: pointer;
+  padding: 0;
+  transition: transform .14s ease;
+  flex-shrink: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+.color-dot:hover { transform: scale(1.15); }
+.color-dot.active {
+  transform: scale(1.22);
+  outline: 2.5px solid var(--ink);
+  outline-offset: 2px;
+}
+.color-dot.eraser-dot {
+  background: var(--card) !important;
+  border-color: var(--border);
+  font-size: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sizes-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  justify-content: center;
+}
+.size-btn {
+  padding: 5px 13px;
+  font-family: 'Tajawal', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  border-radius: 12px;
+  border: 1.5px solid var(--border);
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  transition: all .14s;
+  -webkit-tap-highlight-color: transparent;
+}
+.size-btn:hover { border-color: var(--primary); color: var(--primary); }
+.size-btn.active { background: var(--ink); color: var(--card); border-color: var(--ink); }
+
+.actions-row {
+  display: flex;
+  gap: 6px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+/* ===================================================
+   BUTTONS
+=================================================== */
+button {
+  font-family: 'Tajawal', sans-serif;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  transition: all .14s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+button:hover { transform: translateY(-1px); }
+button:active { transform: translateY(0); }
+
+.btn-primary {
+  background: var(--primary);
+  color: #fff;
+  font-size: 13px;
+  padding: 8px 14px;
+  border-radius: 11px;
+}
+.btn-ghost {
+  background: transparent;
+  color: var(--ink);
+  border: 1.5px solid var(--border);
+  font-size: 13px;
+  padding: 7px 14px;
+  border-radius: 11px;
+}
+.btn-ghost:hover { border-color: var(--primary); color: var(--primary); }
+.btn-celebrate {
+  background: #f59e0b;
+  color: #fff;
+  font-size: 13px;
+  padding: 8px 14px;
+  border-radius: 11px;
+}
+.btn-demo-mobile {
+  background: var(--teal);
+  color: #fff;
+  font-size: 13px;
+  padding: 8px 14px;
+  border-radius: 11px;
+}
+
+/* ===================================================
+   MOBILE DEMO TOGGLE BUTTON (floating)
+=================================================== */
+.fab-demo {
+  position: absolute;
+  bottom: 12px;
+  left: 12px;
+  z-index: 50;
+  background: var(--teal);
+  color: #fff;
+  border: none;
+  border-radius: 14px;
+  padding: 9px 14px;
+  font-family: 'Tajawal', sans-serif;
+  font-weight: 700;
+  font-size: 13px;
+  box-shadow: 0 4px 14px rgba(13,148,136,.4);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  -webkit-tap-highlight-color: transparent;
+  transition: all .15s ease;
+}
+.fab-demo:hover { transform: translateY(-2px); }
+@media (min-width: 768px) {
+  .fab-demo { display: none; }
+}
+
+/* ===================================================
+   SVG STYLES (paths, markers)
+=================================================== */
+.nb-line   { stroke: var(--nb-line);   stroke-width: 1.2; fill: none; }
+.nb-mid    { stroke: var(--nb-mid);    stroke-width: 1.2; fill: none; stroke-dasharray: 4,4; }
+.nb-base   { stroke: var(--nb-base);   stroke-width: 1.8; fill: none; }
+.nb-margin { stroke: var(--nb-margin); stroke-width: 1.2; fill: none; opacity: .55; }
+
+.faint-fill   { fill: none; stroke: var(--guide-fill);   stroke-width: 20; stroke-linecap: round; stroke-linejoin: round; }
+.faint-border { fill: none; stroke: var(--guide-stroke); stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 4,4; opacity: .65; }
+.ink-path     { fill: none; stroke: var(--ink-drawn);    stroke-width: 14; stroke-linecap: round; stroke-linejoin: round; }
+#startArrow   { fill: none; stroke: var(--arrow-clr);   stroke-width: 2.8; stroke-linecap: round; stroke-linejoin: round; opacity: .85; }
+
+/* ===================================================
+   RESPONSIVE TWEAKS
+=================================================== */
+@media (max-width: 380px) {
+  .digit-tab { width: 38px; height: 38px; font-size: 20px; border-radius: 10px; }
+  .app-title { font-size: 13px; }
+}
+
+/* ===================================================
+   LETTER TAB BADGE (achievement star overlay)
+=================================================== */
+.digit-tab { position: relative; }
+.digit-tab .star-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  font-size: 11px;
+  line-height: 1;
+  pointer-events: none;
+}
+
+/* ===================================================
+   SCORE MODAL (floating evaluation card)
+=================================================== */
+#scoreModal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 0 12px 16px;
+  background: rgba(0,0,0,.35);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+#scoreModal.open { display: flex; }
+
+.score-card {
+  width: 100%;
+  max-width: 460px;
+  background: var(--card);
+  border-radius: 24px;
+  padding: 22px 20px 20px;
+  box-shadow: 0 20px 60px -10px rgba(0,0,0,.35);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  animation: slideUp .28s cubic-bezier(.22,1,.36,1) forwards;
+}
+@keyframes slideUp {
+  from { transform: translateY(60px); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+
+.score-stars {
+  display: flex;
+  gap: 6px;
+  font-size: 36px;
+  line-height: 1;
+}
+.score-star { opacity: .2; transition: opacity .3s ease, transform .3s ease; }
+.score-star.lit { opacity: 1; transform: scale(1.15); }
+
+.score-bar-wrap {
+  width: 100%;
+  height: 12px;
+  background: var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+.score-bar-fill {
+  height: 100%;
+  border-radius: 8px;
+  transition: width .6s cubic-bezier(.22,1,.36,1);
+  background: linear-gradient(90deg, #10b981, #2563eb);
+}
+.score-bar-fill.low  { background: linear-gradient(90deg, #ef4444, #f59e0b); }
+.score-bar-fill.mid  { background: linear-gradient(90deg, #f59e0b, #facc15); }
+
+.score-pct {
+  font-family: 'Baloo Bhaijaan 2', sans-serif;
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--primary);
+}
+.score-msg {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--ink);
+  text-align: center;
+  line-height: 1.5;
+}
+.score-hint {
+  font-size: 12px;
+  color: var(--muted);
+  text-align: center;
+}
+
+.score-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
+  width: 100%;
+}
+
+/* Direction warning toast */
+#directionToast {
+  display: none;
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #f59e0b;
+  color: #fff;
+  font-family: 'Tajawal', sans-serif;
+  font-weight: 700;
+  font-size: 12.5px;
+  padding: 7px 14px;
+  border-radius: 20px;
+  box-shadow: 0 4px 14px rgba(245,158,11,.4);
+  white-space: nowrap;
+  z-index: 60;
+  pointer-events: none;
+  animation: toastIn .3s ease forwards;
+}
+@keyframes toastIn {
+  from { opacity: 0; top: 0; }
+  to   { opacity: 1; top: 10px; }
+}
+
+/* Evaluation button */
+.btn-eval {
+  background: #7c3aed;
+  color: #fff;
+  font-size: 13px;
+  padding: 8px 14px;
+  border-radius: 11px;
+}
+</style>
+</head>
+<body>
+
+<!-- Confetti overlay -->
+<canvas id="fxCanvas"></canvas>
+
+<!-- ============================================================
+     TOP BAR
+============================================================ -->
+<div class="top-bar">
+  <div class="app-title">🔤 الحروف الفرنسية</div>
+
+  <div class="digits-scroll" id="digitsBar" role="tablist"></div>
+
+  <button class="tool-icon" id="demoToggleBtn" title="عرض حركة القلم">🎥</button>
+  <button class="tool-icon" id="soundBtn" title="كتم الصوت">🔊</button>
+  <button class="tool-icon" id="themeBtn" title="الوضع الليلي">🌙</button>
+  <button class="tool-icon" id="fullscreenBtn" title="ملء الشاشة">⛶</button>
+</div>
+
+<!-- ============================================================
+     MAIN WORK AREA
+============================================================ -->
+<div class="main-area">
+
+  <!-- ── DEMO PANEL (animation / pen movement) ── -->
+  <div class="demo-panel" id="demoPanel">
+    <div class="demo-header">
+      <h2><span>🎥</span> مسار حركة القلم</h2>
+      <button class="tool-icon demo-close-btn" id="demoCloseBtn" title="إغلاق">✕</button>
+    </div>
+
+    <div class="demo-stage">
+      <svg id="demoSvg" viewBox="0 0 200 240" preserveAspectRatio="xMidYMid meet">
+        <!-- Notebook lines -->
+        <g id="nbGrid">
+          <line x1="30" y1="0" x2="30" y2="240" class="nb-margin"/>
+          <line x1="15" y1="52"  x2="190" y2="52"  class="nb-line"/>
+          <line x1="15" y1="121" x2="190" y2="121" class="nb-mid"/>
+          <line x1="15" y1="190" x2="190" y2="190" class="nb-base"/>
+        </g>
+        <!-- Faint guide paths (filled on letter load) -->
+        <g id="demoFaintGroup"></g>
+        <!-- Animated ink paths -->
+        <g id="demoInkGroup"></g>
+        <!-- Arrow -->
+        <path id="demoStartArrow" style="display:none;" marker-end="url(#arrowDemoHead)"></path>
+        <defs>
+          <marker id="arrowDemoHead" markerWidth="7" markerHeight="7" refX="3.4" refY="3.4" orient="auto-start-reverse">
+            <path d="M0,0 L6.8,3.4 L0,6.8 Z" fill="var(--arrow-clr)"></path>
+          </marker>
+        </defs>
+        <!-- Start / End markers -->
+        <circle id="demoStartMarker" r="6.5" fill="var(--start-dot)" stroke="#fff" stroke-width="2" style="display:none;"></circle>
+        <circle id="demoEndMarker"   r="5.5" fill="var(--end-dot)"   stroke="#fff" stroke-width="2" style="display:none;"></circle>
+        <!-- Moving pen head -->
+        <g id="demoPenGroup" style="display:none;">
+          <circle id="demoPenCircle" r="8" fill="var(--pen-tip)" stroke="var(--pen-ring)" stroke-width="2.5"></circle>
+          <text id="demoPenIcon" x="5" y="-5" font-size="12" style="user-select:none;pointer-events:none;">✏️</text>
+        </g>
+      </svg>
+    </div>
+
+    <div class="demo-controls">
+      <div class="guide-note" id="demoGuideNote">ابـدأ مـن <b>النقطة الخضراء</b></div>
+      <div class="speed-row">
+        <span>🐢</span>
+        <input type="range" id="speedSlider" min="0.4" max="2.2" step="0.1" value="1" aria-label="سرعة الكتابة">
+        <span>🐇</span>
+      </div>
+      <div class="demo-btn-row">
+        <button class="btn-primary" id="playPauseBtn">⏸ إيقاف مؤقت</button>
+        <button class="btn-ghost"   id="replayBtn">🔄 إعادة</button>
+        <button class="btn-celebrate" id="praiseBtn">🌟 أحسنت!</button>
+      </div>
+    </div>
+  </div><!-- /demo-panel -->
+
+  <!-- ── PRACTICE PANEL (drawing board) ── -->
+  <div class="practice-panel">
+    <div class="practice-header">
+      <h2><span>🎨</span> لوحة التدريب</h2>
+      <div id="numberBadge" class="number-badge">A</div>
+    </div>
+
+    <!-- Stage: SVG guides + Canvas -->
+    <div class="stage-box" id="stageBox">
+      <svg id="practiceSvg" viewBox="0 0 200 240" preserveAspectRatio="xMidYMid meet">
+        <!-- Notebook lines -->
+        <g>
+          <line x1="30" y1="0" x2="30" y2="240" class="nb-margin"/>
+          <line x1="15" y1="52"  x2="190" y2="52"  class="nb-line"/>
+          <line x1="15" y1="121" x2="190" y2="121" class="nb-mid"/>
+          <line x1="15" y1="190" x2="190" y2="190" class="nb-base"/>
+        </g>
+        <!-- Dotted guide paths (tracing template) -->
+        <g id="practiceGuideGroup"></g>
+      </svg>
+      <!-- Free-drawing canvas -->
+      <canvas id="drawCanvas"></canvas>
+    </div>
+
+    <!-- FAB: show demo on mobile -->
+    <button class="fab-demo" id="fabDemoBtn">🎥 شاهد حركة القلم</button>
+
+    <!-- ── Toolbar ── -->
+    <div class="toolbar">
+      <!-- Color palette -->
+      <div class="palette-row" id="paletteRow">
+        <button class="color-dot active" style="background:#2563eb;" data-color="#2563eb" title="أزرق"></button>
+        <button class="color-dot" style="background:#ef4444;" data-color="#ef4444" title="أحمر"></button>
+        <button class="color-dot" style="background:#0d9488;" data-color="#0d9488" title="تركواز"></button>
+        <button class="color-dot" style="background:#f59e0b;" data-color="#f59e0b" title="برتقالي"></button>
+        <button class="color-dot" style="background:#8b5cf6;" data-color="#8b5cf6" title="بنفسجي"></button>
+        <button class="color-dot" style="background:#ec4899;" data-color="#ec4899" title="وردي"></button>
+        <button class="color-dot" style="background:#0f172a;" data-color="#0f172a" title="كحلي"></button>
+        <button class="color-dot" style="background:#16a34a;" data-color="#16a34a" title="أخضر"></button>
+        <button class="color-dot eraser-dot" data-eraser="true" title="ممحاة">🧽</button>
+      </div>
+
+      <!-- Brush sizes -->
+      <div class="sizes-row" id="sizesRow">
+        <span style="font-size:12px;color:var(--muted);font-weight:700;">حجم القلم:</span>
+        <button class="size-btn" data-size="7">✏️ رفيع</button>
+        <button class="size-btn active" data-size="16">🖌️ متوسط</button>
+        <button class="size-btn" data-size="26">🖍️ عريض</button>
+      </div>
+
+      <!-- Action buttons -->
+      <div class="actions-row">
+        <button class="btn-ghost" id="clearBtn">🗑️ مسح</button>
+        <button class="btn-primary" id="replayPracticeBtn">🔄 أعِد العرض</button>
+        <button class="btn-eval" id="evaluateBtn">🔍 فحص خطي</button>
+        <button class="btn-celebrate" id="praiseBtnBottom">🌟 أحسنت!</button>
+      </div>
+    </div><!-- /toolbar -->
+
+    <!-- Direction warning toast (inside practice panel) -->
+    <div id="directionToast">⚠️ ابدأ دائماً من النقطة الخضراء 🟢</div>
+
+    <!-- Diagnostics SVG overlay (hidden, shown after eval) -->
+    <svg id="diagnosticsSvg"
+         viewBox="0 0 200 240"
+         preserveAspectRatio="xMidYMid meet"
+         style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;display:none;">
+      <g id="diagnosticsGroup"></g>
+    </svg>
+
+  </div><!-- /practice-panel -->
+
+</div><!-- /main-area -->
+
+<!-- ============================================================
+     SCORE MODAL
+============================================================ -->
+<div id="scoreModal" role="dialog" aria-modal="true" aria-label="نتيجة التقييم">
+  <div class="score-card">
+    <div class="score-stars">
+      <span class="score-star" id="star1">⭐</span>
+      <span class="score-star" id="star2">⭐</span>
+      <span class="score-star" id="star3">⭐</span>
+    </div>
+    <div class="score-pct" id="scorePct">0%</div>
+    <div class="score-bar-wrap">
+      <div class="score-bar-fill" id="scoreBarFill" style="width:0%"></div>
+    </div>
+    <div class="score-msg" id="scoreMsg">جاري التقييم...</div>
+    <div class="score-hint" id="scoreHint"></div>
+    <div class="score-actions">
+      <button class="btn-ghost" id="modalRetryBtn">🔄 محاولة ثانية</button>
+      <button class="btn-primary" id="modalNextBtn">➡️ الحرف التالي</button>
+      <button class="btn-celebrate" id="modalCelebBtn">🌟 أحسنت!</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     JAVASCRIPT
+============================================================ -->
+<script>
+'use strict';
+
+/* =========================================================
+   1. LETTER PATH DATA — uppercase French letters A → F
+   (viewBox 200x240, baseline y=188, x-height mid y=121, top y=54)
+========================================================= */
+const LETTERS = ['A','B','C','D','E','F'];
+
+const LETTER_PATHS = [
+  // A — left leg, right leg, crossbar
+  ["M 100,54 L 66,188", "M 100,54 L 134,188", "M 80,138 L 120,138"],
+  // B — stem, then two bumps in one continuous curve
+  ["M 70,54 L 70,188",
+   "M 70,54 C 102,54 120,66 120,83 C 120,100 104,108 70,108 C 106,108 127,118 127,149 C 127,182 104,188 70,188"],
+  // C — single open curve (opens to the right)
+  ["M 130,74 C 118,58 100,52 88,54 C 64,58 56,86 56,121 C 56,156 64,184 88,188 C 100,190 118,184 130,168"],
+  // D — stem, then one big bump
+  ["M 68,54 L 68,188",
+   "M 68,54 C 108,54 132,74 132,121 C 132,168 108,188 68,188"],
+  // E — stem, top bar, mid bar, bottom bar
+  ["M 70,54 L 70,188", "M 70,54 L 130,54", "M 70,121 L 112,121", "M 70,188 L 130,188"],
+  // F — stem, top bar, mid bar
+  ["M 70,54 L 70,188", "M 70,54 L 130,54", "M 70,121 L 112,121"]
+];
+
+/* Direction arrows: [[tailX,tailY],[headX,headY]] — first stroke's start */
+const START_ARROWS = [
+  [[100,34],[100,50]],  // A
+  [[70,34],[70,50]],    // B
+  [[148,60],[134,72]],  // C
+  [[68,34],[68,50]],    // D
+  [[70,34],[70,50]],    // E
+  [[70,34],[70,50]]     // F
+];
+
+const GUIDE_NOTES = [
+  'ابدأ من <b>القمة العليا</b>، انزل يسارًا ثم يمينًا، وأخيرًا ارسم الخط الأفقي',
+  'ابدأ من <b>الأعلى</b>، انزل مستقيمًا للأسفل، ثم ارسم القوسين معًا نحو اليمين',
+  'ابدأ من <b>أعلى اليمين</b> وارسم قوسًا كبيرًا يفتح جهة اليمين',
+  'ابدأ من <b>الأعلى</b>، انزل مستقيمًا، ثم ارسم قوسًا واحدًا كبيرًا',
+  'ابدأ من <b>الأعلى</b>: عمود، ثم خط علوي، ثم خط أوسط، ثم خط سفلي',
+  'ابدأ من <b>الأعلى</b>: عمود، ثم خط علوي، ثم خط أوسط'
+];
+
+/* =========================================================
+   2. STATE
+========================================================= */
+let activeDigit   = 0; // index into LETTERS
+let isPlaying     = true;
+let animProgress  = 0;
+let baseDuration  = 2200; // ms
+let speedFactor   = 1.0;
+let lastTS        = null;
+let soundEnabled  = true;
+
+// Drawing brush
+let brushColor  = '#2563eb';
+let brushSize   = 16;
+let isEraser    = false;
+let drawing     = false;
+let lastPt      = null;
+
+// Demo animation
+let demoItems       = [];   // [{element, length}]
+let grandTotalLen   = 0;
+
+/* =========================================================
+   3. DOM REFERENCES
+========================================================= */
+const fxCanvas          = document.getElementById('fxCanvas');
+const fxCtx             = fxCanvas.getContext('2d');
+const digitsBar         = document.getElementById('digitsBar');
+const demoPanel         = document.getElementById('demoPanel');
+const demoToggleBtn     = document.getElementById('demoToggleBtn');
+const demoCloseBtn      = document.getElementById('demoCloseBtn');
+const fabDemoBtn        = document.getElementById('fabDemoBtn');
+const demoSvg           = document.getElementById('demoSvg');
+const demoFaintGroup    = document.getElementById('demoFaintGroup');
+const demoInkGroup      = document.getElementById('demoInkGroup');
+const demoStartArrow    = document.getElementById('demoStartArrow');
+const demoStartMarker   = document.getElementById('demoStartMarker');
+const demoEndMarker     = document.getElementById('demoEndMarker');
+const demoPenGroup      = document.getElementById('demoPenGroup');
+const demoGuideNote     = document.getElementById('demoGuideNote');
+const practiceGuideGroup= document.getElementById('practiceGuideGroup');
+const drawCanvas        = document.getElementById('drawCanvas');
+const drawCtx           = drawCanvas.getContext('2d');
+const numberBadge       = document.getElementById('numberBadge');
+const speedSlider       = document.getElementById('speedSlider');
+const playPauseBtn      = document.getElementById('playPauseBtn');
+const replayBtn         = document.getElementById('replayBtn');
+const praiseBtn         = document.getElementById('praiseBtn');
+const praiseBtnBottom   = document.getElementById('praiseBtnBottom');
+const clearBtn          = document.getElementById('clearBtn');
+const replayPracticeBtn = document.getElementById('replayPracticeBtn');
+const soundBtn          = document.getElementById('soundBtn');
+const themeBtn          = document.getElementById('themeBtn');
+const fullscreenBtn     = document.getElementById('fullscreenBtn');
+const paletteRow        = document.getElementById('paletteRow');
+const sizesRow          = document.getElementById('sizesRow');
+
+/* =========================================================
+   4. AUDIO SYNTHESIZER
+========================================================= */
+let audioCtx = null;
+function beep(freq=440, dur=0.12, type='sine', vol=0.05) {
+  if (!soundEnabled) return;
+  try {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    const osc  = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = type;
+    osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+    gain.gain.setValueAtTime(vol, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + dur);
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.start();
+    osc.stop(audioCtx.currentTime + dur);
+  } catch(e){}
+}
+
+/* =========================================================
+   5. CONFETTI PARTICLE SYSTEM
+========================================================= */
+let particles = [];
+function resizeFx() { fxCanvas.width = window.innerWidth; fxCanvas.height = window.innerHeight; }
+window.addEventListener('resize', resizeFx);
+resizeFx();
+
+function triggerCheer(x, y) {
+  const chord = [330,392,494,587,659,784];
+  chord.forEach((f,i) => setTimeout(() => beep(f, 0.22, 'triangle', 0.07), i*70));
+  const colors = ['#2563eb','#0d9488','#f59e0b','#ef4444','#8b5cf6','#ec4899','#16a34a'];
+  for (let i=0; i<55; i++) {
+    particles.push({
+      x: x || innerWidth/2,
+      y: y || innerHeight/3,
+      vx: (Math.random()-.5)*11,
+      vy: (Math.random()-.75)*13,
+      size: Math.random()*7+4,
+      color: colors[Math.floor(Math.random()*colors.length)],
+      alpha: 1,
+      decay: Math.random()*.018+.012,
+      rot: Math.random()*360,
+      spin: (Math.random()-.5)*6
+    });
+  }
+}
+
+function runFx() {
+  fxCtx.clearRect(0,0,fxCanvas.width,fxCanvas.height);
+  for (let i = particles.length-1; i >= 0; i--) {
+    const p = particles[i];
+    p.x  += p.vx;
+    p.y  += p.vy;
+    p.vy += 0.32;
+    p.alpha -= p.decay;
+    p.rot += p.spin;
+    if (p.alpha <= 0) { particles.splice(i,1); continue; }
+    fxCtx.save();
+    fxCtx.globalAlpha = p.alpha;
+    fxCtx.fillStyle = p.color;
+    fxCtx.translate(p.x, p.y);
+    fxCtx.rotate(p.rot * Math.PI/180);
+    fxCtx.fillRect(-p.size/2, -p.size/2, p.size, p.size);
+    fxCtx.restore();
+  }
+  requestAnimationFrame(runFx);
+}
+runFx();
+
+/* =========================================================
+   6. BUILD LETTERS BAR
+========================================================= */
+function buildDigitsBar() {
+  digitsBar.innerHTML = '';
+  LETTERS.forEach((letter, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'digit-tab' + (i === activeDigit ? ' active' : '');
+    btn.textContent = letter;
+    btn.setAttribute('role','tab');
+    btn.setAttribute('aria-label', 'الحرف ' + letter);
+    btn.addEventListener('click', () => {
+      if (activeDigit === i) return;
+      activeDigit = i;
+      digitsBar.querySelectorAll('.digit-tab').forEach((b,idx) => b.classList.toggle('active', idx===i));
+      beep(400 + i*30, 0.1, 'triangle');
+      loadNumber();
+    });
+    digitsBar.appendChild(btn);
+  });
+}
+
+/* =========================================================
+   7. LOAD LETTER — populate both demo & practice panels
+========================================================= */
+const SVG_NS = 'http://www.w3.org/2000/svg';
+
+function loadNumber() {
+  // Update badge
+  numberBadge.textContent = LETTERS[activeDigit];
+
+  // Clear groups
+  demoFaintGroup.innerHTML  = '';
+  demoInkGroup.innerHTML    = '';
+  practiceGuideGroup.innerHTML = '';
+  demoItems = [];
+  grandTotalLen = 0;
+
+  const paths = LETTER_PATHS[activeDigit];
+
+  paths.forEach(d => {
+    // ── Demo: faint background
+    const ff = document.createElementNS(SVG_NS,'path');
+    ff.setAttribute('d', d);
+    ff.setAttribute('class','faint-fill');
+    demoFaintGroup.appendChild(ff);
+
+    const fb = document.createElementNS(SVG_NS,'path');
+    fb.setAttribute('d', d);
+    fb.setAttribute('class','faint-border');
+    demoFaintGroup.appendChild(fb);
+
+    // ── Demo: animated ink
+    const ink = document.createElementNS(SVG_NS,'path');
+    ink.setAttribute('d', d);
+    ink.setAttribute('class','ink-path');
+    const len = ink.getTotalLength();
+    ink.style.strokeDasharray  = len;
+    ink.style.strokeDashoffset = len;
+    demoInkGroup.appendChild(ink);
+    demoItems.push({element: ink, length: len});
+    grandTotalLen += len;
+
+    // ── Practice: dotted guide (tracing template)
+    const pf = document.createElementNS(SVG_NS,'path');
+    pf.setAttribute('d', d);
+    pf.setAttribute('class','faint-fill');
+    practiceGuideGroup.appendChild(pf);
+
+    const pb = document.createElementNS(SVG_NS,'path');
+    pb.setAttribute('d', d);
+    pb.setAttribute('class','faint-border');
+    practiceGuideGroup.appendChild(pb);
+  });
+
+  // Start / End markers on demo
+  if (demoItems.length > 0 && grandTotalLen > 0) {
+    const firstEl = demoItems[0].element;
+    const lastEl  = demoItems[demoItems.length-1].element;
+    const ptS = firstEl.getPointAtLength(0);
+    const ptE = lastEl.getPointAtLength(lastEl.getTotalLength());
+
+    demoStartMarker.setAttribute('cx', ptS.x);
+    demoStartMarker.setAttribute('cy', ptS.y);
+    demoStartMarker.style.display = 'block';
+    demoEndMarker.setAttribute('cx', ptE.x);
+    demoEndMarker.setAttribute('cy', ptE.y);
+    demoEndMarker.style.display = 'block';
+
+    demoPenGroup.setAttribute('transform', `translate(${ptS.x},${ptS.y})`);
+    demoPenGroup.style.display = 'block';
+
+    const arrow = START_ARROWS[activeDigit];
+    if (arrow) {
+      demoStartArrow.setAttribute('d', `M ${arrow[0][0]},${arrow[0][1]} L ${arrow[1][0]},${arrow[1][1]}`);
+      demoStartArrow.style.display = 'block';
+    }
+  }
+
+  // Guide note
+  demoGuideNote.innerHTML = GUIDE_NOTES[activeDigit];
+
+  // Reset animation
+  animProgress = 0;
+  lastTS = null;
+  isPlaying = true;
+  playPauseBtn.textContent = '⏸ إيقاف مؤقت';
+}
+
+/* =========================================================
+   8. ANIMATION LOOP (60fps pen movement)
+========================================================= */
+function animLoop(ts) {
+  if (!lastTS) lastTS = ts;
+  const delta = ts - lastTS;
+  lastTS = ts;
+
+  if (isPlaying && grandTotalLen > 0) {
+    const rate = delta / (baseDuration / speedFactor);
+    animProgress += rate;
+
+    if (animProgress >= 1.25) {
+      animProgress = 0;
+      beep(620, 0.18, 'sine', 0.04);
+    }
+
+    const clamped     = Math.min(Math.max(animProgress, 0), 1.0);
+    const targetTravel = clamped * grandTotalLen;
+
+    let accumulated = 0;
+    let penPos = null;
+
+    for (const item of demoItems) {
+      const len = item.length;
+      if (targetTravel <= accumulated) {
+        item.element.style.strokeDashoffset = len;
+      } else if (targetTravel >= accumulated + len) {
+        item.element.style.strokeDashoffset = 0;
+        penPos = item.element.getPointAtLength(len);
+      } else {
+        const partial = targetTravel - accumulated;
+        item.element.style.strokeDashoffset = len - partial;
+        penPos = item.element.getPointAtLength(partial);
+      }
+      accumulated += len;
+    }
+
+    if (penPos) demoPenGroup.setAttribute('transform', `translate(${penPos.x},${penPos.y})`);
+    demoStartArrow.style.opacity = clamped > 0.05 ? '0' : '0.85';
+  }
+
+  requestAnimationFrame(animLoop);
+}
+requestAnimationFrame(animLoop);
+
+/* =========================================================
+   9. DRAWING CANVAS SETUP
+========================================================= */
+function resizeDrawCanvas() {
+  const rect = drawCanvas.getBoundingClientRect();
+  if (rect.width === 0 || rect.height === 0) return;
+  const ratio = window.devicePixelRatio || 1;
+  // Save current drawing
+  const img = drawCtx.getImageData(0, 0, drawCanvas.width, drawCanvas.height);
+  drawCanvas.width  = Math.round(rect.width  * ratio);
+  drawCanvas.height = Math.round(rect.height * ratio);
+  drawCtx.scale(ratio, ratio);
+  drawCtx.lineCap   = 'round';
+  drawCtx.lineJoin  = 'round';
+  // Restore if same size
+  try { drawCtx.putImageData(img, 0, 0); } catch(e) {}
+}
+window.addEventListener('resize', resizeDrawCanvas);
+// Initial resize after layout
+setTimeout(resizeDrawCanvas, 50);
+
+function getPos(e) {
+  const rect = drawCanvas.getBoundingClientRect();
+  const src  = e.touches ? e.touches[0] : e;
+  return {
+    x: (src.clientX - rect.left),
+    y: (src.clientY - rect.top)
+  };
+}
+
+function startDraw(e) {
+  drawing = true;
+  lastPt  = getPos(e);
+  beep(400, 0.04, 'sine', 0.02);
+  e.preventDefault();
+}
+
+function moveDraw(e) {
+  if (!drawing) return;
+  const pt = getPos(e);
+  drawCtx.beginPath();
+  drawCtx.moveTo(lastPt.x, lastPt.y);
+  drawCtx.lineTo(pt.x, pt.y);
+  drawCtx.lineWidth = brushSize;
+  if (isEraser) {
+    drawCtx.globalCompositeOperation = 'destination-out';
+    drawCtx.strokeStyle = 'rgba(0,0,0,1)';
+  } else {
+    drawCtx.globalCompositeOperation = 'source-over';
+    drawCtx.strokeStyle = brushColor;
+  }
+  drawCtx.stroke();
+  lastPt = pt;
+  e.preventDefault();
+}
+
+function endDraw() { drawing = false; lastPt = null; }
+
+drawCanvas.addEventListener('mousedown',  startDraw);
+drawCanvas.addEventListener('mousemove',  moveDraw);
+window.addEventListener('mouseup',        endDraw);
+drawCanvas.addEventListener('touchstart', startDraw, {passive: false});
+drawCanvas.addEventListener('touchmove',  moveDraw,  {passive: false});
+drawCanvas.addEventListener('touchend',   endDraw);
+
+/* =========================================================
+   10. TOOLBAR CONTROLS
+========================================================= */
+// Speed slider
+speedSlider.addEventListener('input', e => {
+  speedFactor = parseFloat(e.target.value);
+  beep(300 + speedFactor * 80, 0.04);
+});
+
+// Play / Pause demo
+playPauseBtn.addEventListener('click', () => {
+  isPlaying = !isPlaying;
+  playPauseBtn.textContent = isPlaying ? '⏸ إيقاف مؤقت' : '▶️ استئناف';
+  beep(isPlaying ? 520 : 350, 0.08);
+});
+
+// Replay demo (also triggered from practice panel)
+function replayDemo() {
+  animProgress = 0;
+  lastTS = null;
+  isPlaying = true;
+  playPauseBtn.textContent = '⏸ إيقاف مؤقت';
+  beep(560, 0.1);
+}
+replayBtn.addEventListener('click', replayDemo);
+replayPracticeBtn.addEventListener('click', replayDemo);
+
+// Celebrate buttons
+function celebrate(btn) {
+  const r = btn.getBoundingClientRect();
+  triggerCheer(r.left + r.width/2, r.top);
+}
+praiseBtn.addEventListener('click', () => celebrate(praiseBtn));
+praiseBtnBottom.addEventListener('click', () => celebrate(praiseBtnBottom));
+
+// Clear canvas
+clearBtn.addEventListener('click', () => {
+  drawCtx.clearRect(0, 0, drawCanvas.width, drawCanvas.height);
+  beep(220, 0.1, 'sawtooth', 0.03);
+});
+
+// Color palette
+paletteRow.querySelectorAll('.color-dot').forEach(dot => {
+  dot.addEventListener('click', () => {
+    paletteRow.querySelectorAll('.color-dot').forEach(d => d.classList.remove('active'));
+    dot.classList.add('active');
+    if (dot.dataset.eraser) {
+      isEraser = true;
+      beep(260, 0.07);
+    } else {
+      isEraser = false;
+      brushColor = dot.dataset.color;
+      beep(480, 0.07, 'triangle');
+    }
+  });
+});
+
+// Brush sizes
+sizesRow.querySelectorAll('.size-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    sizesRow.querySelectorAll('.size-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    brushSize = parseInt(btn.dataset.size, 10);
+    beep(340, 0.05);
+  });
+});
+
+/* =========================================================
+   11. DEMO PANEL TOGGLE (mobile)
+========================================================= */
+function showDemo() {
+  demoPanel.classList.add('visible');
+  demoToggleBtn.classList.add('active-btn');
+  document.body.style.overflow = 'hidden';
+}
+function hideDemo() {
+  demoPanel.classList.remove('visible');
+  demoToggleBtn.classList.remove('active-btn');
+  document.body.style.overflow = '';
+}
+
+demoToggleBtn.addEventListener('click', () => {
+  const isMobile = window.innerWidth < 768;
+  if (isMobile) {
+    demoPanel.classList.contains('visible') ? hideDemo() : showDemo();
+  } else {
+    // On desktop: toggle side-by-side visibility
+    const visible = demoPanel.style.display !== 'none';
+    demoPanel.style.display = visible ? 'none' : '';
+    demoToggleBtn.classList.toggle('active-btn', !visible);
+  }
+  beep(440, 0.07);
+});
+
+demoCloseBtn.addEventListener('click', () => { hideDemo(); beep(360, 0.07); });
+fabDemoBtn.addEventListener('click',   () => { showDemo(); beep(440, 0.07); });
+
+/* =========================================================
+   12. SOUND TOGGLE
+========================================================= */
+soundBtn.addEventListener('click', () => {
+  soundEnabled = !soundEnabled;
+  soundBtn.textContent = soundEnabled ? '🔊' : '🔇';
+});
+
+/* =========================================================
+   13. THEME TOGGLE
+========================================================= */
+function applyTheme(theme) {
+  document.documentElement.setAttribute('data-theme', theme);
+  themeBtn.textContent = theme === 'dark' ? '☀️' : '🌙';
+  localStorage.setItem('frLettersTheme', theme);
+}
+themeBtn.addEventListener('click', () => {
+  const cur = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+  applyTheme(cur);
+  beep(cur === 'dark' ? 340 : 560, 0.08);
+});
+(function initTheme() {
+  const saved = localStorage.getItem('frLettersTheme');
+  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  applyTheme(saved || (prefersDark ? 'dark' : 'light'));
+})();
+
+/* =========================================================
+   14. FULLSCREEN
+========================================================= */
+fullscreenBtn.addEventListener('click', async () => {
+  try {
+    if (!document.fullscreenElement) {
+      await document.documentElement.requestFullscreen();
+      fullscreenBtn.textContent = '⊡';
+    } else {
+      await document.exitFullscreen();
+      fullscreenBtn.textContent = '⛶';
+    }
+    beep(500, 0.07);
+  } catch(e){}
+});
+document.addEventListener('fullscreenchange', () => {
+  if (!document.fullscreenElement) fullscreenBtn.textContent = '⛶';
+});
+
+/* =========================================================
+   15. INIT
+========================================================= */
+buildDigitsBar();
+loadNumber();
+
+// Ensure canvas is sized after fonts/layout settle
+window.addEventListener('load', () => setTimeout(resizeDrawCanvas, 100));
+
+/* =========================================================
+   16. SMART EVALUATION ENGINE
+========================================================= */
+
+// ── A. Stroke Tracking (temporal, per-stroke) ──
+let currentStroke = [];       // [{x_svg, y_svg, t}] – current stroke in SVG coords
+let allStrokes    = [];        // [[stroke0], [stroke1], ...] – completed strokes
+let strokeTimer   = null;      // debounce timer for multi-stroke letters
+const MULTI_STROKE_DIGITS = new Set([0, 1, 3, 4, 5]); // A, B, D, E, F have more than one stroke
+const DEBOUNCE_MS = 2500;      // wait 2.5s before auto-eval for multi-stroke letters
+
+// ── B. Score persistence ──
+let savedScores = JSON.parse(localStorage.getItem('fr_letters_scores') || '{}');
+// { "0": 2, "1": 3, ... } — best star count per letter index
+
+// ── C. DOM refs for eval UI ──
+const evaluateBtn     = document.getElementById('evaluateBtn');
+const scoreModal      = document.getElementById('scoreModal');
+const scorePct        = document.getElementById('scorePct');
+const scoreBarFill    = document.getElementById('scoreBarFill');
+const scoreMsg        = document.getElementById('scoreMsg');
+const scoreHint       = document.getElementById('scoreHint');
+const star1           = document.getElementById('star1');
+const star2           = document.getElementById('star2');
+const star3           = document.getElementById('star3');
+const modalRetryBtn   = document.getElementById('modalRetryBtn');
+const modalNextBtn    = document.getElementById('modalNextBtn');
+const modalCelebBtn   = document.getElementById('modalCelebBtn');
+const diagnosticsSvg  = document.getElementById('diagnosticsSvg');
+const diagnosticsGroup= document.getElementById('diagnosticsGroup');
+const directionToast  = document.getElementById('directionToast');
+const practiceSvg     = document.getElementById('practiceSvg');
+
+// ── D. Coordinate conversion: screen → SVG viewBox (CTM-exact) ──
+function clientToSvg(svgEl, clientX, clientY) {
+  const pt = svgEl.createSVGPoint();
+  pt.x = clientX;
+  pt.y = clientY;
+  return pt.matrixTransform(svgEl.getScreenCTM().inverse());
+}
+
+// ── E. Patch startDraw / moveDraw / endDraw to capture SVG coords + time ──
+const _origStartDraw = startDraw;
+const _origEndDraw   = endDraw;
+
+drawCanvas.removeEventListener('mousedown',  startDraw);
+drawCanvas.removeEventListener('touchstart', startDraw);
+
+function startDrawEval(e) {
+  currentStroke = [];
+  _origStartDraw(e);
+  const src = e.touches ? e.touches[0] : e;
+  const svgPt = clientToSvg(practiceSvg, src.clientX, src.clientY);
+  currentStroke.push({ x: svgPt.x, y: svgPt.y, t: performance.now() });
+  clearTimeout(strokeTimer);
+  hideDiagnostics();
+}
+
+function moveDrawEval(e) {
+  if (!drawing) return;
+  moveDraw(e);
+  const src = e.touches ? e.touches[0] : e;
+  const svgPt = clientToSvg(practiceSvg, src.clientX, src.clientY);
+  currentStroke.push({ x: svgPt.x, y: svgPt.y, t: performance.now() });
+}
+
+function endDrawEval() {
+  _origEndDraw();
+  if (currentStroke.length > 2) {
+    allStrokes.push([...currentStroke]);
+  }
+  currentStroke = [];
+  // Debounce: for multi-stroke letters wait for possible extra strokes
+  clearTimeout(strokeTimer);
+  const delay = MULTI_STROKE_DIGITS.has(activeDigit) ? DEBOUNCE_MS : 0;
+  // No auto-eval here – only on button press (avoids interrupting kids)
+}
+
+drawCanvas.addEventListener('mousedown',  startDrawEval);
+drawCanvas.addEventListener('mousemove',  moveDrawEval);
+drawCanvas.addEventListener('touchstart', startDrawEval, {passive: false});
+drawCanvas.addEventListener('touchmove',  moveDrawEval,  {passive: false});
+window.addEventListener('mouseup',  endDrawEval);
+window.addEventListener('touchend', endDrawEval);
+
+// ── F. Sample reference checkpoints (densely, arc-length parametrized) ──
+function samplePath(pathEl, count) {
+  const totalLen = pathEl.getTotalLength();
+  const pts = [];
+  for (let i = 0; i <= count; i++) {
+    const s = (i / count) * totalLen;
+    pts.push(pathEl.getPointAtLength(s));
+  }
+  return pts;
+}
+
+function buildReferenceCheckpoints(digitIndex) {
+  const paths   = LETTER_PATHS[digitIndex];
+  const tmpSvg  = document.createElementNS(SVG_NS, 'svg');
+  tmpSvg.setAttribute('viewBox', '0 0 200 240');
+  tmpSvg.style.cssText = 'position:absolute;visibility:hidden;width:200px;height:240px;';
+  document.body.appendChild(tmpSvg);
+
+  const result = []; // array of strokes, each stroke is array of {x,y}
+  paths.forEach(d => {
+    const p = document.createElementNS(SVG_NS, 'path');
+    p.setAttribute('d', d);
+    tmpSvg.appendChild(p);
+    const len   = p.getTotalLength();
+    // ~2.5 units between samples → count = len / 2.5
+    const count = Math.max(30, Math.round(len / 2.5));
+    result.push(samplePath(p, count));
+  });
+
+  document.body.removeChild(tmpSvg);
+  return result; // [[{x,y},...], [{x,y},...]] one array per path stroke
+}
+
+// ── G. Live pixel check on drawCanvas ──
+function svgToCanvasPixel(svgX, svgY) {
+  const pt = practiceSvg.createSVGPoint();
+  pt.x = svgX; pt.y = svgY;
+  const screenPt = pt.matrixTransform(practiceSvg.getScreenCTM());
+  const rect   = drawCanvas.getBoundingClientRect();
+  const ratio  = window.devicePixelRatio || 1;
+  const px = Math.round((screenPt.x - rect.left) * ratio);
+  const py = Math.round((screenPt.y - rect.top)  * ratio);
+  return { px, py };
+}
+
+function hasInkAt(svgX, svgY, radius = 10) {
+  const ratio = window.devicePixelRatio || 1;
+  const r = Math.round(radius * ratio);
+  const checks = [
+    {dx:0, dy:0},
+    {dx:r, dy:0}, {dx:-r, dy:0},
+    {dx:0, dy:r}, {dx:0, dy:-r}
+  ];
+  for (const {dx, dy} of checks) {
+    const {px, py} = svgToCanvasPixel(svgX, svgY);
+    try {
+      const pixel = drawCtx.getImageData(px + dx, py + dy, 1, 1).data;
+      if (pixel[3] > 30) return true;
+    } catch(e) {}
+  }
+  return false;
+}
+
+// ── H. Direction check (temporal sequence over stroke) ──
+function checkDirection(digitIndex, userStrokes) {
+  if (!userStrokes.length || !userStrokes[0].length) return true; // no data → no warn
+  const refPaths = LETTER_PATHS[digitIndex];
+  if (!refPaths.length) return true;
+
+  // Build temp ref path to get start/mid/end SVG coords
+  const tmpSvg = document.createElementNS(SVG_NS,'svg');
+  tmpSvg.style.cssText='position:absolute;visibility:hidden;';
+  document.body.appendChild(tmpSvg);
+  const p = document.createElementNS(SVG_NS,'path');
+  p.setAttribute('d', refPaths[0]);
+  tmpSvg.appendChild(p);
+  const len    = p.getTotalLength();
+  const ptMid  = p.getPointAtLength(len * 0.5);
+  const ptEnd  = p.getPointAtLength(len * 0.9);
+  document.body.removeChild(tmpSvg);
+
+  const firstStroke = userStrokes[0];
+  const n = firstStroke.length;
+  if (n < 4) return true;
+
+  // Find time the user reached vicinity of midpoint and endpoint
+  const RANGE = 25; // SVG units
+  let tMid = null, tEnd = null;
+  const tStart = firstStroke[0].t;
+
+  for (const pt of firstStroke) {
+    const dMid = Math.hypot(pt.x - ptMid.x, pt.y - ptMid.y);
+    const dEnd = Math.hypot(pt.x - ptEnd.x,  pt.y - ptEnd.y);
+    if (tMid === null && dMid < RANGE) tMid = pt.t;
+    if (tEnd === null && dEnd < RANGE) tEnd = pt.t;
+  }
+
+  if (tMid === null || tEnd === null) return true; // didn't reach those points → no direction issue
+  // Correct if tStart < tMid < tEnd (in time)
+  return (tStart <= tMid && tMid <= tEnd);
+}
+
+// ── I. Core evaluation function ──
+function evaluateDrawing() {
+  if (allStrokes.length === 0 && currentStroke.length === 0) {
+    showDirectionToast('✏️ ارسم الحرف أولاً ثم اضغط فحص!');
+    return;
+  }
+
+  const refCheckpoints = buildReferenceCheckpoints(activeDigit);
+  const TOLERANCE = 14;   // SVG units (standard level)
+  const TOLERANCE_WARN = 22; // SVG units (marginal)
+
+  let covered   = 0;
+  let marginal  = 0;
+  let total     = 0;
+  const missedPts = [];
+
+  refCheckpoints.forEach(strokePts => {
+    strokePts.forEach(refPt => {
+      total++;
+      // Use live pixel check (handles eraser correctly)
+      const inkPresent = hasInkAt(refPt.x, refPt.y, TOLERANCE);
+      const inkMarginal = !inkPresent && hasInkAt(refPt.x, refPt.y, TOLERANCE_WARN);
+
+      if (inkPresent) {
+        covered++;
+      } else if (inkMarginal) {
+        marginal++;
+      } else {
+        missedPts.push(refPt);
+      }
+    });
+  });
+
+  const coverageScore = total > 0 ? (covered + marginal * 0.5) / total : 0;
+  const pct = Math.round(coverageScore * 100);
+
+  // Direction check
+  const correctDir = checkDirection(activeDigit, allStrokes);
+  if (!correctDir) {
+    showDirectionToast('⚠️ ابدأ من النقطة الخضراء 🟢 في الأعلى!');
+  }
+
+  // Show diagnostics overlay
+  showDiagnostics(refCheckpoints, TOLERANCE);
+
+  // Show modal after short delay for effect
+  setTimeout(() => showScoreModal(pct, missedPts, correctDir), 320);
+}
+
+// ── J. Show / Hide diagnostics SVG overlay ──
+function showDiagnostics(refCheckpoints, tolerance) {
+  diagnosticsGroup.innerHTML = '';
+  refCheckpoints.forEach(strokePts => {
+    strokePts.forEach((pt, i) => {
+      // Check every 3rd point for performance
+      if (i % 3 !== 0) return;
+      const hasIt = hasInkAt(pt.x, pt.y, tolerance);
+      if (!hasIt) {
+        const circle = document.createElementNS(SVG_NS, 'circle');
+        circle.setAttribute('cx', pt.x);
+        circle.setAttribute('cy', pt.y);
+        circle.setAttribute('r', '3');
+        circle.setAttribute('fill', 'none');
+        circle.setAttribute('stroke', '#ef4444');
+        circle.setAttribute('stroke-width', '1.5');
+        circle.setAttribute('opacity', '0.7');
+        // pulsing dash
+        circle.setAttribute('stroke-dasharray', '3,2');
+        diagnosticsGroup.appendChild(circle);
+      } else {
+        const circle = document.createElementNS(SVG_NS, 'circle');
+        circle.setAttribute('cx', pt.x);
+        circle.setAttribute('cy', pt.y);
+        circle.setAttribute('r', '2.5');
+        circle.setAttribute('fill', '#10b981');
+        circle.setAttribute('opacity', '0.55');
+        diagnosticsGroup.appendChild(circle);
+      }
+    });
+  });
+  diagnosticsSvg.style.display = 'block';
+  // Auto-hide diagnostics after 4s to keep screen clean
+  setTimeout(hideDiagnostics, 4000);
+}
+
+function hideDiagnostics() {
+  diagnosticsSvg.style.display = 'none';
+  diagnosticsGroup.innerHTML = '';
+}
+
+// ── K. Score modal display ──
+const LEVEL_DATA = [
+  { min: 85, stars: 3, msg: 'مبهر جداً! خط رائع ومتقن 🎨',          hint: 'أنت فنان صغير حقيقي!' },
+  { min: 68, stars: 2, msg: 'أحسنت! تقريباً مثالي 👏',               hint: 'اقترب أكثر من الخط المنقط في المرة القادمة' },
+  { min: 45, stars: 1, msg: 'محاولة بطل! استمر في التدريب 💪',       hint: 'تابع الخط المنقط لتصبح أفضل' },
+  { min:  0, stars: 0, msg: 'لا بأس يا بطل، جرب مرة ثانية ✏️',      hint: 'شاهد حركة القلم التوضيحية أولاً' }
+];
+
+function showScoreModal(pct, missedPts, correctDir) {
+  const level = LEVEL_DATA.find(l => pct >= l.min) || LEVEL_DATA[LEVEL_DATA.length-1];
+
+  // Percentage
+  scorePct.textContent = pct + '%';
+
+  // Bar
+  scoreBarFill.style.width = '0%';
+  scoreBarFill.className = 'score-bar-fill' +
+    (pct < 45 ? ' low' : pct < 68 ? ' mid' : '');
+  setTimeout(() => { scoreBarFill.style.width = pct + '%'; }, 80);
+
+  // Stars
+  [star1, star2, star3].forEach((s, i) => {
+    s.classList.remove('lit');
+    if (i < level.stars) {
+      setTimeout(() => s.classList.add('lit'), 200 + i * 160);
+    }
+  });
+
+  // Message + hint
+  scoreMsg.textContent = level.msg;
+  if (!correctDir) {
+    scoreHint.textContent = 'تذكر: ابدأ دائماً من النقطة الخضراء 🟢';
+  } else {
+    scoreHint.textContent = level.hint;
+  }
+
+  // Open modal
+  scoreModal.classList.add('open');
+
+  // Play audio feedback
+  if (level.stars === 3) {
+    const chord = [440, 554, 659, 880];
+    chord.forEach((f, i) => setTimeout(() => beep(f, 0.22, 'triangle', 0.06), i * 90));
+    const rect = scoreModal.getBoundingClientRect();
+    triggerCheer(rect.left + rect.width / 2, rect.top + 80);
+  } else if (level.stars === 2) {
+    beep(523, 0.25, 'triangle', 0.05);
+    setTimeout(() => beep(659, 0.22, 'triangle', 0.05), 180);
+  } else if (level.stars === 1) {
+    beep(400, 0.2, 'sine', 0.04);
+  } else {
+    beep(320, 0.18, 'sine', 0.03);
+  }
+
+  // Save best score
+  const best = savedScores[activeDigit] || 0;
+  if (level.stars > best) {
+    savedScores[activeDigit] = level.stars;
+    localStorage.setItem('fr_letters_scores', JSON.stringify(savedScores));
+    updateStarBadges();
+  }
+}
+
+function closeScoreModal() {
+  scoreModal.classList.remove('open');
+  hideDiagnostics();
+}
+
+// ── L. Direction toast ──
+let toastTimer = null;
+function showDirectionToast(msg) {
+  directionToast.textContent = msg;
+  directionToast.style.display = 'block';
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { directionToast.style.display = 'none'; }, 2800);
+}
+
+// ── M. Update star badges on letter tabs ──
+function updateStarBadges() {
+  const tabs = digitsBar.querySelectorAll('.digit-tab');
+  tabs.forEach((tab, i) => {
+    let badge = tab.querySelector('.star-badge');
+    const stars = savedScores[i] || 0;
+    if (stars >= 2) {
+      if (!badge) {
+        badge = document.createElement('span');
+        badge.className = 'star-badge';
+        tab.appendChild(badge);
+      }
+      badge.textContent = stars === 3 ? '🌟' : '⭐';
+    } else if (badge) {
+      badge.remove();
+    }
+  });
+}
+
+// ── N. Reset strokes when loading new letter ──
+const _origLoadNumber = loadNumber;
+loadNumber = function() {
+  allStrokes    = [];
+  currentStroke = [];
+  clearTimeout(strokeTimer);
+  hideDiagnostics();
+  closeScoreModal();
+  _origLoadNumber();
+};
+
+// ── O. Reset strokes on clear ──
+clearBtn.addEventListener('click', () => {
+  allStrokes    = [];
+  currentStroke = [];
+  hideDiagnostics();
+});
+
+// ── P. Evaluate button ──
+evaluateBtn.addEventListener('click', () => {
+  beep(460, 0.07, 'triangle');
+  evaluateDrawing();
+});
+
+// ── Q. Modal buttons ──
+modalRetryBtn.addEventListener('click', () => {
+  closeScoreModal();
+  drawCtx.clearRect(0, 0, drawCanvas.width, drawCanvas.height);
+  allStrokes = []; currentStroke = [];
+  beep(400, 0.07);
+});
+
+modalNextBtn.addEventListener('click', () => {
+  closeScoreModal();
+  const next = (activeDigit + 1) % LETTERS.length;
+  activeDigit = next;
+  digitsBar.querySelectorAll('.digit-tab').forEach((b, i) =>
+    b.classList.toggle('active', i === next));
+  drawCtx.clearRect(0, 0, drawCanvas.width, drawCanvas.height);
+  loadNumber();
+  beep(500, 0.08, 'triangle');
+});
+
+modalCelebBtn.addEventListener('click', () => {
+  const r = scoreModal.getBoundingClientRect();
+  triggerCheer(r.left + r.width / 2, r.top + 100);
+});
+
+// Close modal on backdrop click
+scoreModal.addEventListener('click', e => {
+  if (e.target === scoreModal) closeScoreModal();
+});
+
+// Initialize star badges from saved scores
+updateStarBadges();
+</script>
+</body>
+</html>
