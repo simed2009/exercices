@@ -568,8 +568,12 @@ button:active { transform: translateY(0); }
 .nb-base   { stroke: var(--nb-base);   stroke-width: 1.8; fill: none; }
 .nb-margin { stroke: var(--nb-margin); stroke-width: 1.2; fill: none; opacity: .55; }
 
-.faint-fill   { fill: none; stroke: var(--guide-fill);   stroke-width: 20; stroke-linecap: round; stroke-linejoin: round; }
-.faint-border { fill: none; stroke: var(--guide-stroke); stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 4,4; opacity: .65; }
+/* butt caps (not round) — a round cap on a 20-wide stroke bulges 10 units
+   past any endpoint that sits exactly on the baseline/top guide line
+   (the stem of B/D/E/F, the legs of A), making the guide look taller
+   than the letter and spill below the baseline */
+.faint-fill   { fill: none; stroke: var(--guide-fill);   stroke-width: 20; stroke-linecap: butt; stroke-linejoin: round; }
+.faint-border { fill: none; stroke: var(--guide-stroke); stroke-width: 1.5; stroke-linecap: butt; stroke-linejoin: round; stroke-dasharray: 4,4; opacity: .65; }
 .ink-path     { fill: none; stroke: var(--ink-drawn);    stroke-width: 14; stroke-linecap: round; stroke-linejoin: round; }
 #startArrow   { fill: none; stroke: var(--arrow-clr);   stroke-width: 2.8; stroke-linecap: round; stroke-linejoin: round; opacity: .85; }
 
