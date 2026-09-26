@@ -1226,20 +1226,39 @@ requestAnimationFrame(animLoop);
 /* =========================================================
    9. DRAWING CANVAS SETUP
 ========================================================= */
+// Tracks the bitmap size/ratio the canvas was last sized for, so the
+// internal resolution never drifts out of sync with its rendered CSS box
+// (a drift here is what makes strokes render stretched and offset).
+let lastCanvasSize = { w: 0, h: 0, ratio: 0 };
+
 function resizeDrawCanvas() {
   const rect = drawCanvas.getBoundingClientRect();
   if (rect.width === 0 || rect.height === 0) return;
   const ratio = window.devicePixelRatio || 1;
-  // Save current drawing
-  const img = drawCtx.getImageData(0, 0, drawCanvas.width, drawCanvas.height);
-  drawCanvas.width  = Math.round(rect.width  * ratio);
-  drawCanvas.height = Math.round(rect.height * ratio);
-  drawCtx.scale(ratio, ratio);
+  const newW  = Math.round(rect.width  * ratio);
+  const newH  = Math.round(rect.height * ratio);
+  if (newW === lastCanvasSize.w && newH === lastCanvasSize.h && ratio === lastCanvasSize.ratio) return;
+
+  // Save current drawing (only meaningful if a bitmap already existed)
+  let img = null;
+  if (drawCanvas.width > 0 && drawCanvas.height > 0) {
+    try { img = drawCtx.getImageData(0, 0, drawCanvas.width, drawCanvas.height); } catch(e) {}
+  }
+  drawCanvas.width  = newW;
+  drawCanvas.height = newH;
+  // setTransform (not scale) so re-sizes never compound the previous ratio
+  drawCtx.setTransform(ratio, 0, 0, ratio, 0, 0);
   drawCtx.lineCap   = 'round';
   drawCtx.lineJoin  = 'round';
-  // Restore if same size
-  try { drawCtx.putImageData(img, 0, 0); } catch(e) {}
+  if (img) { try { drawCtx.putImageData(img, 0, 0); } catch(e) {} }
+
+  lastCanvasSize = { w: newW, h: newH, ratio };
 }
+
+// The canvas's rendered box can change for reasons a 'resize' event never
+// fires for (web font swap reflow, flex layout settling, panel toggles,
+// orientation change) — ResizeObserver catches all of those directly.
+new ResizeObserver(() => resizeDrawCanvas()).observe(drawCanvas);
 window.addEventListener('resize', resizeDrawCanvas);
 // Initial resize after layout
 setTimeout(resizeDrawCanvas, 50);
